@@ -111,11 +111,11 @@ const OrderDetails = () => {
             <div className="bg-neutral-800 text-white px-6 py-4 grid grid-cols-4 gap-4">
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">PO Number</span>
-                    <span className="text-sm font-medium">{order?.po_number}</span>
+                    <span className="text-sm font-medium">{order?.ponumber}</span>
                 </div>
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Principal</span>
-                    <span className="text-sm font-medium">{order?.principle}</span>
+                    <span className="text-sm font-medium">{order?.principal}</span>
                 </div>
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Order Type</span>

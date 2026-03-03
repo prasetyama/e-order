@@ -19,7 +19,7 @@ const SELECT_QUERY = `
         WHEN release_flag = 'Y' THEN 'SUBMITTED'
         ELSE 'DRAFT'
     END as status
-    FROM order_detail
+    FROM eorder_eorderdatadtl
 `;
 
 export const orderDetailRepository = {
@@ -66,7 +66,7 @@ export const orderDetailRepository = {
         const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         const [result] = await pool.query<ResultSetHeader>(
-            `INSERT INTO order_detail 
+            `INSERT INTO eorder_eorderdatadtl 
             (distid, ponumber, podate, dlvdate, principal, sku, orderqty, uom, stockonhand, filename, order_type, periode, CREATEBY, CREATEDATE) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
@@ -119,7 +119,7 @@ export const orderDetailRepository = {
         params.push(id);
 
         await pool.query<ResultSetHeader>(
-            `UPDATE order_detail SET ${fields.join(', ')} WHERE id = ?`,
+            `UPDATE eorder_eorderdatadtl SET ${fields.join(', ')} WHERE id = ?`,
             params
         );
 
@@ -130,7 +130,7 @@ export const orderDetailRepository = {
         const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         await pool.query<ResultSetHeader>(
-            `UPDATE order_detail SET release_flag = 'Y', release_notes = ?, MODIFIEDBY = ?, MODIFIEDDATE = ? WHERE id = ?`,
+            `UPDATE eorder_eorderdatadtl SET release_flag = 'Y', release_notes = ?, MODIFIEDBY = ?, MODIFIEDDATE = ? WHERE id = ?`,
             [notes ?? null, modifiedBy ?? null, now, id]
         );
 
@@ -141,7 +141,7 @@ export const orderDetailRepository = {
         const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         await pool.query<ResultSetHeader>(
-            `UPDATE order_detail SET cancel_flag = 'Y', notes = ?, MODIFIEDBY = ?, MODIFIEDDATE = ? WHERE id = ?`,
+            `UPDATE eorder_eorderdatadtl SET cancel_flag = 'Y', notes = ?, MODIFIEDBY = ?, MODIFIEDDATE = ? WHERE id = ?`,
             [notes ?? null, modifiedBy ?? null, now, id]
         );
 

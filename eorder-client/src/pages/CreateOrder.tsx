@@ -71,8 +71,8 @@ const CreateOrder = () => {
                                 >
                                     <option value="">Select Distributor</option>
                                     {distributors?.map(dist => (
-                                        <option key={dist.dist_id} value={dist.dist_id}>
-                                            {dist.dist_name}
+                                        <option key={dist.DistID} value={dist.DistID}>
+                                            {dist.DistName}
                                         </option>
                                     ))}
                                 </select>

@@ -1,15 +1,15 @@
 export interface Distributor {
-    dist_id: number;
-    dist_name: string;
-    dist_code: string;
+    DistID: number;
+    DistName: string;
+    DistShort: string;
 }
 
 export interface OrderDetail {
     id: number;
-    po_number: string;
+    ponumber: string;
     po_date: string;
     dlv_date: string;
-    principle: string;
+    principal: string;
     sku: string;
     order_qty: number;
     uom: string;

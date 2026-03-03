@@ -16,7 +16,7 @@ interface DistributorRow extends RowDataPacket {
 export const distributorRepository = {
     async findAll(): Promise<DistributorRow[]> {
         const [rows] = await pool.query<DistributorRow[]>(
-            'SELECT * FROM distributor'
+            'SELECT * FROM eorder_eorder_distributor'
         );
         return rows;
     },
