@@ -1,0 +1,182 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams, useNavigate } from 'react-router-dom';
+import { orderApi } from '../api/api';
+import { Button } from '../components/ui/UI';
+import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp } from 'lucide-react';
+import { clsx } from 'clsx';
+
+const MOCK_PRODUCTS = [
+    { sku: 'F0011453', description: 'DELFI ORION K RICE POTCHEESE 1x10x100.8g', uom: 'CS', price: 151500 },
+    { sku: 'F0001733', description: 'FISHERMANS SF BLACKCURRANT 1/12/24/25 G', uom: 'CS', price: 3571200 },
+    { sku: 'F0011170', description: 'PRINGLES SPICY TEXAS BBQ 1x12x102g', uom: 'CS', price: 213480 },
+    { sku: 'F0002940', description: 'RICOLA LEMON MINT DRUM 1X6X24X100G', uom: 'CS', price: 3931200 },
+    { sku: 'F0011399', description: 'AKU SAUS SAMBAL 1x12x250mL', uom: 'CS', price: 85000 },
+    { sku: 'F0011400', description: 'AKU SAUS SAMBAL EXTRA PEDAS 1x12x250mL', uom: 'CS', price: 87500 },
+    { sku: 'F0011401', description: 'AKU SAUS TOMAT 1x12x250mL', uom: 'CS', price: 82000 },
+    { sku: 'F0011402', description: 'AKU SAMBAL EXTRA PEDAS SACHET 1x500x9g', uom: 'CS', price: 120500 },
+    { sku: 'F0011403', description: 'AKU SAUS TOMAT SACHET 1x500x9g', uom: 'CS', price: 115000 },
+];
+
+const OrderDetails = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+    const { data: order, isLoading } = useQuery({
+        queryKey: ['order', id],
+        queryFn: () => orderApi.getById(parseInt(id!)),
+        enabled: !!id,
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: (data: any) => orderApi.update(parseInt(id!), data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['order', id] });
+            alert('Order saved as draft!');
+        },
+    });
+
+    const submitMutation = useMutation({
+        mutationFn: () => orderApi.submit(parseInt(id!)),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+            navigate('/');
+        },
+    });
+
+    const handleQtyChange = (sku: string, qty: string) => {
+        const val = parseInt(qty) || 0;
+        setQuantities(prev => ({ ...prev, [sku]: val }));
+    };
+
+    if (isLoading) return <div className="p-10 text-center">Loading order...</div>;
+
+    return (
+        <div className="flex flex-col h-full bg-neutral-50/50">
+            {/* Header Toolbar */}
+            <div className="p-4 border-b border-neutral-100 bg-white shadow-sm flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+                        <ArrowLeft size={16} className="mr-2" />
+                        Back
+                    </Button>
+                    <div className="h-4 w-px bg-neutral-200 mx-2" />
+                    <h2 className="text-sm font-bold text-neutral-800 uppercase tracking-widest">Order Details</h2>
+                    <span className={clsx(
+                        "px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ml-3",
+                        order?.status === 'SUBMITTED' ? "bg-green-100 text-green-800" : "bg-[#A51C24]/10 text-[#A51C24]"
+                    )}>
+                        {order?.status}
+                    </span>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" className="h-9">
+                        <RefreshCw size={14} className="mr-2" />
+                        Refresh
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-9">
+                        <FileDown size={14} className="mr-2" />
+                        Download
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-9">
+                        <FileUp size={14} className="mr-2" />
+                        Upload
+                    </Button>
+                    <div className="h-6 w-px bg-neutral-200 mx-1" />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 bg-white text-neutral-700 hover:bg-neutral-50"
+                        onClick={() => updateMutation.mutate({})} // Just demoing save
+                    >
+                        <Save size={14} className="mr-2" />
+                        Save Draft
+                    </Button>
+                    <Button
+                        size="sm"
+                        className="h-9"
+                        onClick={() => submitMutation.mutate()}
+                        disabled={order?.status !== 'DRAFT'}
+                    >
+                        <Send size={14} className="mr-2" />
+                        Submit Order
+                    </Button>
+                </div>
+            </div>
+
+            {/* Info Bar */}
+            <div className="bg-neutral-800 text-white px-6 py-4 grid grid-cols-4 gap-4">
+                <div>
+                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">PO Number</span>
+                    <span className="text-sm font-medium">{order?.po_number}</span>
+                </div>
+                <div>
+                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Principal</span>
+                    <span className="text-sm font-medium">{order?.principle}</span>
+                </div>
+                <div>
+                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Order Type</span>
+                    <span className="text-sm font-medium">{order?.order_type || 'Urgent Order'}</span>
+                </div>
+                <div>
+                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Period</span>
+                    <span className="text-sm font-medium">{order?.periode || 'February 2026'}</span>
+                </div>
+            </div>
+
+            {/* Product Selection Table */}
+            <div className="flex-1 overflow-auto p-6">
+                <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+                    <table className="min-w-full divide-y divide-neutral-200">
+                        <thead className="bg-[#A51C24]">
+                            <tr>
+                                <th className="px-4 py-2 text-left text-[10px] font-bold text-white uppercase tracking-widest w-12 text-center">No.</th>
+                                <th className="px-4 py-2 text-left text-[10px] font-bold text-white uppercase tracking-widest w-32">SKU</th>
+                                <th className="px-4 py-2 text-left text-[10px] font-bold text-white uppercase tracking-widest">Material Description</th>
+                                <th className="px-4 py-2 text-center text-[10px] font-bold text-white uppercase tracking-widest w-32">Order Qty</th>
+                                <th className="px-4 py-2 text-center text-[10px] font-bold text-white uppercase tracking-widest w-24">UOM</th>
+                                <th className="px-4 py-2 text-right text-[10px] font-bold text-white uppercase tracking-widest w-32">Price / UOM</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-neutral-100">
+                            {MOCK_PRODUCTS.map((product, index) => (
+                                <tr key={product.sku} className="hover:bg-neutral-50/50">
+                                    <td className="px-4 py-2 whitespace-nowrap text-xs text-neutral-400 font-medium text-center">{index + 1}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-xs font-bold text-[#A51C24]">{product.sku}</td>
+                                    <td className="px-4 py-2 text-xs text-neutral-700 font-medium">{product.description}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap">
+                                        <input
+                                            type="number"
+                                            className="w-full h-8 text-center text-xs font-bold border-neutral-200 rounded focus:ring-[#A51C24]"
+                                            value={quantities[product.sku] || 0}
+                                            onChange={(e) => handleQtyChange(product.sku, e.target.value)}
+                                            disabled={order?.status !== 'DRAFT'}
+                                        />
+                                    </td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-xs text-center text-neutral-500 font-bold">{product.uom}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-neutral-600 font-medium">
+                                        {product.price.toLocaleString()}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        <tfoot className="bg-neutral-50 font-bold">
+                            <tr>
+                                <td colSpan={3} className="px-4 py-2 text-right text-[10px] uppercase tracking-widest text-neutral-500">Total Order</td>
+                                <td className="px-4 py-2 text-center text-sm text-[#A51C24]">
+                                    {Object.values(quantities).reduce((a, b) => a + b, 0)}
+                                </td>
+                                <td colSpan={2}></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default OrderDetails;

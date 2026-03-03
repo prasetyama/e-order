@@ -1,0 +1,236 @@
+{
+    "info": {
+        "name": "eorder-api",
+        "description": "API collection for eorder-api — Order Detail Management",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3002",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Health",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "health"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Distributors",
+            "item": [
+                {
+                    "name": "List Distributors",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/distributors",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "distributors"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Order Details",
+            "item": [
+                {
+                    "name": "List Order Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/order-details",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "order-details"
+                            ],
+                            "query": [
+                                {
+                                    "key": "dist_id",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "principle",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "periode",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "po_number",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "DRAFT",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Order Detail by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/order-details/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "order-details",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Order Detail",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"dist_id\": 1,\n    \"po_number\": \"PO-001\",\n    \"po_date\": \"2026-03-01\",\n    \"dlv_date\": \"2026-03-10\",\n    \"principle\": \"Test Principle\",\n    \"sku\": \"SKU001\",\n    \"order_qty\": 10,\n    \"uom\": \"PCS\",\n    \"stock_on_hand\": 0,\n    \"order_type\": \"REGULAR\",\n    \"periode\": \"2026-03-01\",\n    \"created_by\": \"admin\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/order-details",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "order-details"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Order Detail",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"order_qty\": 20,\n    \"uom\": \"BOX\",\n    \"modified_by\": \"admin\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/order-details/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "order-details",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Submit Order Detail",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"release_notes\": \"Final check completed\",\n    \"modified_by\": \"admin\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/order-details/1/submit",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "order-details",
+                                "1",
+                                "submit"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Cancel Order Detail",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"cancel_notes\": \"Customer request\",\n    \"modified_by\": \"admin\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/order-details/1/cancel",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "order-details",
+                                "1",
+                                "cancel"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
