@@ -17,8 +17,8 @@ const CreateOrder = () => {
         po_number: `PO-${Date.now()}`,
         po_date: new Date().toISOString().split('T')[0],
         dlv_date: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
-        sku: 'TEMP-SKU',
-        order_qty: 1,
+        sku: '',
+        order_qty: 0,
         uom: 'CS',
     });
 
