@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderApi } from '../api/api';
 import { Button } from '../components/ui/UI';
-import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp } from 'lucide-react';
+import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const MOCK_PRODUCTS = [
@@ -24,17 +24,68 @@ const OrderDetails = () => {
     const queryClient = useQueryClient();
     const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-    const { data: order, isLoading } = useQuery({
+    // Fetch single order to get PO Number and metadata
+    const { data: order, isLoading: isOrderLoading } = useQuery({
         queryKey: ['order', id],
         queryFn: () => orderApi.getById(parseInt(id!)),
         enabled: !!id,
     });
 
-    const updateMutation = useMutation({
-        mutationFn: (data: any) => orderApi.update(parseInt(id!), data),
+    // Fetch all lines for this PO Number
+    const { data: poLines, isLoading: isLinesLoading } = useQuery({
+        queryKey: ['po-lines', order?.po_number],
+        queryFn: () => orderApi.getAll({ po_number: order?.po_number }),
+        enabled: !!order?.po_number,
+    });
+
+    // Sync state when data changes
+    useEffect(() => {
+        if (poLines) {
+            const qtys: Record<string, number> = {};
+            poLines.forEach((line: any) => {
+                qtys[line.sku] = line.order_qty;
+            });
+            setQuantities(qtys);
+        }
+    }, [poLines]);
+
+    const saveMutation = useMutation({
+        mutationFn: async () => {
+            if (!order) return;
+            const promises = [];
+
+            for (const product of MOCK_PRODUCTS) {
+                const qty = quantities[product.sku] || 0;
+                const existingLine = poLines?.find((l: any) => l.sku === product.sku);
+
+                if (existingLine) {
+                    if (qty !== existingLine.order_qty) {
+                        promises.push(orderApi.update(existingLine.id, {
+                            order_qty: qty,
+                            modified_by: 'admin'
+                        }));
+                    }
+                } else if (qty > 0) {
+                    promises.push(orderApi.create({
+                        dist_id: order.dist_id,
+                        po_number: order.po_number,
+                        po_date: order.po_date,
+                        dlv_date: order.dlv_date,
+                        principle: order.principle,
+                        sku: product.sku,
+                        order_qty: qty,
+                        uom: product.uom,
+                        created_by: 'admin',
+                        periode: order.periode,
+                        order_type: order.order_type
+                    }));
+                }
+            }
+            return Promise.all(promises);
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['order', id] });
-            alert('Order saved as draft!');
+            queryClient.invalidateQueries({ queryKey: ['po-lines', order?.po_number] });
+            alert('Draft saved successfully!');
         },
     });
 
@@ -51,7 +102,7 @@ const OrderDetails = () => {
         setQuantities(prev => ({ ...prev, [sku]: val }));
     };
 
-    if (isLoading) return <div className="p-10 text-center">Loading order...</div>;
+    if (isOrderLoading) return <div className="p-10 text-center">Loading order...</div>;
 
     return (
         <div className="flex flex-col h-full bg-neutral-50/50">
@@ -90,18 +141,19 @@ const OrderDetails = () => {
                         variant="outline"
                         size="sm"
                         className="h-9 bg-white text-neutral-700 hover:bg-neutral-50"
-                        onClick={() => updateMutation.mutate({})} // Just demoing save
+                        onClick={() => saveMutation.mutate()}
+                        disabled={saveMutation.isPending || order?.status !== 'DRAFT'}
                     >
-                        <Save size={14} className="mr-2" />
+                        {saveMutation.isPending ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Save size={14} className="mr-2" />}
                         Save Draft
                     </Button>
                     <Button
                         size="sm"
                         className="h-9"
                         onClick={() => submitMutation.mutate()}
-                        disabled={order?.status !== 'DRAFT'}
+                        disabled={order?.status !== 'DRAFT' || submitMutation.isPending}
                     >
-                        <Send size={14} className="mr-2" />
+                        {submitMutation.isPending ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Send size={14} className="mr-2" />}
                         Submit Order
                     </Button>
                 </div>
@@ -111,11 +163,11 @@ const OrderDetails = () => {
             <div className="bg-neutral-800 text-white px-6 py-4 grid grid-cols-4 gap-4">
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">PO Number</span>
-                    <span className="text-sm font-medium">{order?.ponumber}</span>
+                    <span className="text-sm font-medium">{order?.po_number}</span>
                 </div>
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Principal</span>
-                    <span className="text-sm font-medium">{order?.principal}</span>
+                    <span className="text-sm font-medium">{order?.principle}</span>
                 </div>
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Order Type</span>

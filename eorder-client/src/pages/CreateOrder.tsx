@@ -54,7 +54,7 @@ const CreateOrder = () => {
                     Back to Dashboard
                 </button>
                 <h2 className="text-xl font-bold text-neutral-800">Create Order to Principal</h2>
-                <p className="text-sm text-neutral-500">Initialize a new order by selecting a distributor and order preferences.</p>
+                <p className="text-sm text-neutral-500">Create a new order for a selected distributor.</p>
             </div>
 
             <div className="p-8 max-w-2xl mx-auto w-full">
@@ -133,12 +133,12 @@ const CreateOrder = () => {
                     </form>
                 </Card>
 
-                <div className="mt-8 p-4 bg-[#A51C24]/5 rounded-lg border border-[#A51C24]/10">
+                {/* <div className="mt-8 p-4 bg-[#A51C24]/5 rounded-lg border border-[#A51C24]/10">
                     <h4 className="text-xs font-bold text-[#A51C24] uppercase tracking-wider mb-2">Note</h4>
                     <p className="text-xs text-[#A51C24]/70 leading-relaxed">
                         After creating the order header, you will be redirected to the product selection page where you can add SKUs and quantities to your order.
                     </p>
-                </div>
+                </div> */}
             </div>
         </div>
     );

@@ -14,7 +14,7 @@ export interface OrderDetail {
     order_qty: number;
     uom: string;
     status: 'DRAFT' | 'SUBMITTED' | 'CANCELLED';
-    created_date: string;
+    createdate: Date;
     order_type?: string;
     periode?: string;
 }

@@ -105,15 +105,13 @@ export const orderDetailRepository = {
         }
 
         if (fields.length === 0) {
-            return this.findById(id);
-        }
-
-        fields.push('MODIFIEDDATE = ?');
-        params.push(now);
-
-        if (data.modified_by) {
-            fields.push('MODIFIEDBY = ?');
-            params.push(data.modified_by);
+            fields.push('MODIFIEDDATE = ?');
+            params.push(now);
+        } else {
+            if (!fields.some(f => f.startsWith('MODIFIEDDATE'))) {
+                fields.push('MODIFIEDDATE = ?');
+                params.push(now);
+            }
         }
 
         params.push(id);

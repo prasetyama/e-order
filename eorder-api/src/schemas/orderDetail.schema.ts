@@ -48,15 +48,15 @@ export type SubmitOrderDetailInput = z.infer<typeof submitOrderDetailSchema>;
 
 export interface OrderDetail {
     id: number;
-    dist_id: number;
-    po_number: string;
-    po_date: string;
-    dlv_date: string;
-    principle: string;
+    distid: number;
+    ponumber: string;
+    podate: string;
+    dlvdate: string;
+    principal: string;
     sku: string;
-    order_qty: number;
+    orderqty: number;
     uom: string;
-    stock_on_hand: number;
+    stockonhand: number;
     filename: string | null;
     error_flag: string | null;
     error_notes: string | null;
@@ -65,8 +65,8 @@ export interface OrderDetail {
     transfer_flag: string | null;
     order_type: string | null;
     periode: string | null;
-    modified_by: string | null;
-    modified_date: string | null;
+    MODIFIEDBY: string | null;
+    MODIFIEDDATE: string | null;
     created_by: string | null;
     created_date: string | null;
     cancel_flag: string | null;

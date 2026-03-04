@@ -90,7 +90,7 @@ const Layout = () => {
             {/* Footer */}
             <footer className="bg-white border-t border-neutral-200 py-3 mt-auto">
                 <div className="max-w-7xl mx-auto px-4 text-center text-[10px] text-neutral-400 uppercase tracking-widest font-medium">
-                    &copy; 2026 E-ORDER MANAGEMENT SYSTEM - PT. PERUSAHAAN INDUSTRI CERES
+                    &copy; 2026 E-ORDER MANAGEMENT SYSTEM - PT. NIRWANA LESTARI
                 </div>
             </footer>
         </div>
