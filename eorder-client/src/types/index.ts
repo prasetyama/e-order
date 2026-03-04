@@ -21,8 +21,9 @@ export interface OrderDetail {
 }
 
 export interface Product {
-    sku: string;
-    description: string;
-    uom: string;
+    Material_Code: string;
+    Material_Description: string;
+    CRT2PLT: number;
+    BASEUOM: string;
     price: number;
 }

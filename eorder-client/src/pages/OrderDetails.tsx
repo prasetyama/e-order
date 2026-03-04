@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
-import { orderApi } from '../api/api';
+import { orderApi, productsApi } from '../api/api';
 import { Button } from '../components/ui/UI';
 import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
+import type { Product } from '../types';
 
 const MOCK_PRODUCTS = [
     { sku: 'F0011453', description: 'DELFI ORION K RICE POTCHEESE 1x10x100.8g', uom: 'CS', price: 151500 },
@@ -38,6 +39,11 @@ const OrderDetails = () => {
         enabled: !!order?.po_number,
     });
 
+    const { data: products } = useQuery<Product[]>({
+        queryKey: ['products'],
+        queryFn: () => productsApi.getAll()
+    });
+
     // Sync state when data changes
     useEffect(() => {
         if (poLines) {
@@ -54,9 +60,9 @@ const OrderDetails = () => {
             if (!order) return;
             const promises = [];
 
-            for (const product of MOCK_PRODUCTS) {
-                const qty = quantities[product.sku] || 0;
-                const existingLine = poLines?.find((l: any) => l.sku === product.sku);
+            for (const product of products || []) {
+                const qty = quantities[product.Material_Code] || 0;
+                const existingLine = poLines?.find((l: any) => l.sku === product.Material_Code);
 
                 if (existingLine) {
                     if (qty !== existingLine.order_qty) {
@@ -72,9 +78,9 @@ const OrderDetails = () => {
                         po_date: order.po_date,
                         dlv_date: order.dlv_date,
                         principle: order.principle,
-                        sku: product.sku,
+                        sku: product.Material_Code,
                         order_qty: qty,
-                        uom: product.uom,
+                        uom: product.BASEUOM,
                         created_by: 'admin',
                         periode: order.periode,
                         order_type: order.order_type
@@ -194,23 +200,23 @@ const OrderDetails = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-neutral-100">
-                            {MOCK_PRODUCTS.map((product, index) => (
-                                <tr key={product.sku} className="hover:bg-neutral-50/50">
+                            {products?.map((product, index) => (
+                                <tr key={product.Material_Code} className="hover:bg-neutral-50/50">
                                     <td className="px-4 py-2 whitespace-nowrap text-xs text-neutral-400 font-medium text-center">{index + 1}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap text-xs font-bold text-[#A51C24]">{product.sku}</td>
-                                    <td className="px-4 py-2 text-xs text-neutral-700 font-medium">{product.description}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-xs font-bold text-[#A51C24]">{product.Material_Code}</td>
+                                    <td className="px-4 py-2 text-xs text-neutral-700 font-medium">{product.Material_Description}</td>
                                     <td className="px-4 py-2 whitespace-nowrap">
                                         <input
                                             type="number"
                                             className="w-full h-8 text-center text-xs font-bold border-neutral-200 rounded focus:ring-[#A51C24]"
-                                            value={quantities[product.sku] || 0}
-                                            onChange={(e) => handleQtyChange(product.sku, e.target.value)}
+                                            value={quantities[product.Material_Code] || 0}
+                                            onChange={(e) => handleQtyChange(product.Material_Code, e.target.value)}
                                             disabled={order?.status !== 'DRAFT'}
                                         />
                                     </td>
-                                    <td className="px-4 py-2 whitespace-nowrap text-xs text-center text-neutral-500 font-bold">{product.uom}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-xs text-center text-neutral-500 font-bold">{product.BASEUOM}</td>
                                     <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-neutral-600 font-medium">
-                                        {product.price.toLocaleString()}
+                                        {product.price}
                                     </td>
                                 </tr>
                             ))}

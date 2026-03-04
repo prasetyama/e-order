@@ -11,6 +11,13 @@ export const distributorApi = {
     },
 };
 
+export const productsApi = {
+    getAll: async () => {
+        const response = await api.get('/products');
+        return response.data.data;
+    },
+};
+
 export interface OrderFilters {
     dist_id?: number;
     principle?: string;
