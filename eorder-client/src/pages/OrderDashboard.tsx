@@ -8,7 +8,7 @@ import { clsx } from 'clsx';
 const OrderDashboard = () => {
     const { data: orders, isLoading } = useQuery({
         queryKey: ['orders'],
-        queryFn: () => orderApi.getAll(),
+        queryFn: () => orderApi.getAll({ grouped: true } as any),
     });
 
     return (
@@ -88,7 +88,7 @@ const OrderDashboard = () => {
                                             </span>
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-500">
-                                            {order.created_date ? new Date(order.created_date).toLocaleTimeString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' } ) : 'N/A'}
+                                            {order.created_date ? new Date(order.created_date).toLocaleTimeString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-right text-sm">
                                             <Link to={`/order/${order.id}`}>

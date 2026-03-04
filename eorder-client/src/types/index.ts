@@ -6,15 +6,16 @@ export interface Distributor {
 
 export interface OrderDetail {
     id: number;
-    ponumber: string;
+    dist_id: number;
+    po_number: string;
     po_date: string;
     dlv_date: string;
-    principal: string;
+    principle: string;
     sku: string;
     order_qty: number;
     uom: string;
     status: 'DRAFT' | 'SUBMITTED' | 'CANCELLED';
-    createdate: Date;
+    created_date: string;
     order_type?: string;
     periode?: string;
 }

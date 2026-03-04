@@ -16,6 +16,7 @@ export const orderDetailService = {
         periode?: string;
         po_number?: string;
         status?: string;
+        grouped?: string;
     }) {
         const parsedFilters = {
             dist_id: filters.dist_id ? parseInt(filters.dist_id) : undefined,
@@ -23,6 +24,7 @@ export const orderDetailService = {
             periode: filters.periode,
             po_number: filters.po_number,
             status: filters.status as any,
+            grouped: filters.grouped === 'true',
         };
         return orderDetailRepository.findAll(parsedFilters);
     },

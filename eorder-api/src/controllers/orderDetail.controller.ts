@@ -10,6 +10,7 @@ export const orderDetailController = {
                 periode: req.query.periode as string | undefined,
                 po_number: req.query.po_number as string | undefined,
                 status: req.query.status as string | undefined,
+                grouped: req.query.grouped as string | undefined,
             };
             const orders = await orderDetailService.getAll(filters);
             res.json({ success: true, data: orders });

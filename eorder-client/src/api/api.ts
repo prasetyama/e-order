@@ -17,6 +17,7 @@ export interface OrderFilters {
     periode?: string;
     po_number?: string;
     status?: 'DRAFT' | 'SUBMITTED' | 'CANCELLED';
+    grouped?: boolean;
 }
 
 export const orderApi = {
