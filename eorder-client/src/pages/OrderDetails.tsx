@@ -67,6 +67,7 @@ const OrderDetails = () => {
                         dlv_date: order.dlv_date,
                         principle: order.principle,
                         sku: product.Material_Code,
+                        product_name: product.Material_Description,
                         order_qty: qty,
                         uom: product.BASEUOM,
                         created_by: 'admin',

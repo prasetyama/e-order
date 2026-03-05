@@ -7,6 +7,7 @@ export const createOrderDetailSchema = z.object({
     dlv_date: z.string().optional(),
     principle: z.string().max(255),
     sku: z.string().max(15).nullable().optional(),
+    product_name: z.string().max(255).optional(),
     order_qty: z.number().int().nullable().optional(),
     uom: z.string().max(10).nullable().optional(),
     stock_on_hand: z.number().int().optional().default(0),
@@ -22,6 +23,7 @@ export const updateOrderDetailSchema = z.object({
     dlv_date: z.string().optional(),
     principle: z.string().max(255).optional(),
     sku: z.string().max(15).nullable().optional(),
+    product_name: z.string().max(255).optional(),
     order_qty: z.number().int().nullable().optional(),
     uom: z.string().max(10).nullable().optional(),
     stock_on_hand: z.number().int().optional(),
@@ -54,6 +56,7 @@ export interface OrderDetail {
     dlv_date: string | null;
     principle: string;
     sku: string;
+    product_name?: string;
     order_qty: number;
     uom: string;
     stock_on_hand: number;
