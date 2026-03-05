@@ -132,8 +132,8 @@ export const orderDetailRepository = {
 
         const [result] = await pool.query<ResultSetHeader>(
             `INSERT INTO ${DRAFT_TABLE} 
-            (Id, DistId, OrderDate, Principal, PeriodeOrder, OrderType, Sku, ProductName, OrderQty, UOM, StockOnHand, FileName, RddDate, CreateBy, CreateDate) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (Id, DistId, OrderDate, Principal, PeriodeOrder, OrderType, Sku, ProductName, Crt2Plt, OrderQty, UOM, StockOnHand, FileName, RddDate, CreateBy, CreateDate) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 nextId,
                 data.dist_id,
@@ -143,6 +143,7 @@ export const orderDetailRepository = {
                 data.order_type ?? null,
                 data.sku ?? null,
                 data.product_name ?? null,
+                data.crt2plt ?? null,
                 data.order_qty ?? null,
                 data.uom ?? null,
                 data.stock_on_hand ?? 0,

@@ -68,6 +68,7 @@ const OrderDetails = () => {
                         principle: order.principle,
                         sku: product.Material_Code,
                         product_name: product.Material_Description,
+                        crt2plt: product.CRT2PLT,
                         order_qty: qty,
                         uom: product.BASEUOM,
                         created_by: 'admin',
