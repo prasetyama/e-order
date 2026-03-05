@@ -16,9 +16,6 @@ const CreateOrder = () => {
         periode: new Date().toISOString().split('T')[0],
         po_date: new Date().toISOString().split('T')[0],
         dlv_date: '',
-        sku: '',
-        order_qty: 0,
-        uom: 'CS',
     });
 
     const { data: distributors } = useQuery<Distributor[]>({
@@ -27,10 +24,10 @@ const CreateOrder = () => {
     });
 
     const createMutation = useMutation({
-        mutationFn: orderApi.create,
+        mutationFn: orderApi.initialize,
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['orders'] });
-            navigate(`/order/${data.id}`);
+            navigate(`/order/${data.first_id}`);
         },
     });
 

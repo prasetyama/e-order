@@ -42,6 +42,15 @@ export const orderDetailController = {
         }
     },
 
+    initialize: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const result = await orderDetailService.initialize(req.body);
+            res.status(201).json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    },
+
     update: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const id = parseInt(req.params.id);

@@ -1,6 +1,6 @@
 import pool from '../lib/db';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
-import { CreateOrderDetailInput, UpdateOrderDetailInput, OrderDetail } from '../schemas/orderDetail.schema';
+import { CreateOrderDetailInput, InitializeOrderDetailInput, UpdateOrderDetailInput, OrderDetail } from '../schemas/orderDetail.schema';
 
 interface OrderDetailRow extends RowDataPacket, OrderDetail { }
 
@@ -155,6 +155,25 @@ export const orderDetailRepository = {
 
         const created = await this.findById(nextId);
         return created!;
+    },
+
+    async initialize(data: InitializeOrderDetailInput): Promise<{ first_id: number; filename: string }> {
+        // Call the stored procedure - it returns a result set with first_id and filename
+        const [resultSets] = await pool.query<RowDataPacket[][]>(
+            `CALL eorder.sp_InitializeOrderDraft(?, ?, ?, ?, ?, ?, ?)`,
+            [
+                String(data.dist_id),
+                data.principle,
+                data.order_type ?? '3',
+                data.periode ?? null,
+                data.po_date,
+                data.dlv_date ?? null,
+                data.created_by ?? 'admin',
+            ]
+        ) as any;
+        // The SP SELECT returns the first result set
+        const spResult = (resultSets as any)[0][0];
+        return { first_id: spResult.first_id, filename: spResult.filename };
     },
 
     async update(id: number, data: UpdateOrderDetailInput): Promise<OrderDetail | null> {
