@@ -19,6 +19,8 @@ export interface OrderDetail {
     order_type?: string;
     periode?: string;
     filename: string;
+    total_sku?: number;
+    total_qty?: number;
 }
 
 export interface Product {

@@ -59,9 +59,12 @@ const OrderDashboard = () => {
                             <thead className="bg-[#A51C24]">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">No.</th>
-                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">Order ID / PO</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">Order ID</th>
                                     <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">Principal</th>
                                     <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">Order Type</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest text-center">Jumlah SKU</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest text-center">Jumlah Qty</th>
+                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">Periode Order</th>
                                     <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">Status</th>
                                     <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">Created Date</th>
                                     <th className="px-4 py-3 text-right text-[10px] font-bold text-white uppercase tracking-widest">Action</th>
@@ -73,10 +76,12 @@ const OrderDashboard = () => {
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-500 font-medium">{index + 1}</td>
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <div className="text-sm font-bold text-[#A51C24]">{order.filename}</div>
-                                            <div className="text-[10px] text-neutral-400 font-medium uppercase tracking-tight">ID: {order.id}</div>
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600 font-medium">{order.principle}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order.order_type || 'N/A'}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-center text-neutral-600">{order.total_sku || 0}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-center text-[#A51C24]">{order.total_qty || 0}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order.periode ? new Date(order.periode).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'N/A'}</td>
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <span className={clsx(
                                                 "px-2 inline-flex text-[10px] leading-5 font-bold rounded-full uppercase tracking-wider",
@@ -102,7 +107,7 @@ const OrderDashboard = () => {
                                 ))}
                                 {(!orders || orders.length === 0) && (
                                     <tr>
-                                        <td colSpan={7} className="px-4 py-12 text-center text-neutral-400 italic text-sm">
+                                        <td colSpan={9} className="px-4 py-12 text-center text-neutral-400 italic text-sm">
                                             No orders found. Click "Create New Order" to get started.
                                         </td>
                                     </tr>

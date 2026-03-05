@@ -74,4 +74,6 @@ export interface OrderDetail {
     cancel_flag: string | null;
     cancel_notes: string | null;
     status: 'DRAFT' | 'SUBMITTED' | 'CANCELLED';
+    total_sku?: number;
+    total_qty?: number;
 }

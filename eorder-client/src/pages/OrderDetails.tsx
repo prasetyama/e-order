@@ -158,7 +158,7 @@ const OrderDetails = () => {
             {/* Info Bar */}
             <div className="bg-neutral-800 text-white px-6 py-4 grid grid-cols-4 gap-4">
                 <div>
-                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Filename (PO)</span>
+                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Order Id</span>
                     <span className="text-sm font-medium">{order?.filename}</span>
                 </div>
                 <div>
