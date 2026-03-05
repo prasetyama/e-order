@@ -8,7 +8,6 @@ interface Filters {
     dist_id?: number;
     principle?: string;
     periode?: string;
-    po_number?: string;
     filename?: string;
     status?: 'DRAFT' | 'SUBMITTED' | 'CANCELLED';
     grouped?: boolean;
@@ -84,9 +83,9 @@ export const orderDetailRepository = {
             sql += ' AND periode = ?';
             params.push(filters.periode);
         }
-        if (filters.filename || filters.po_number) {
+        if (filters.filename) {
             sql += ' AND filename = ?';
-            params.push(filters.filename || filters.po_number);
+            params.push(filters.filename);
         }
         if (filters.status) {
             sql += ' AND status = ?';
@@ -120,8 +119,8 @@ export const orderDetailRepository = {
         );
         const nextId = maxIdResult[0].nextId;
 
-        // Generate or use provided FileName (po_number)
-        const fileName = (data as any).po_number || generateFileName(data.dist_id, data.periode, data.principle);
+        // Generate or use provided FileName (filename)
+        const fileName = data.filename || generateFileName(data.dist_id, data.periode, data.principle);
 
         // Sync CreateDate with other items that have the same FileName (po_number)
         const [existing] = await pool.query<RowDataPacket[]>(
@@ -180,7 +179,6 @@ export const orderDetailRepository = {
 
         const columnMap: Record<string, string> = {
             po_date: 'OrderDate',
-            po_number: 'FileName',
             dlv_date: 'RddDate',
             principle: 'Principal',
             sku: 'Sku',

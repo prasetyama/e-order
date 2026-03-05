@@ -20,11 +20,11 @@ const OrderDetails = () => {
         enabled: !!id,
     });
 
-    // Fetch all lines for this PO Number
+    // Fetch all lines for this Filename
     const { data: poLines } = useQuery({
-        queryKey: ['po-lines', order?.po_number],
-        queryFn: () => orderApi.getAll({ po_number: order?.po_number }),
-        enabled: !!order?.po_number,
+        queryKey: ['po-lines', order?.filename],
+        queryFn: () => orderApi.getAll({ filename: order?.filename }),
+        enabled: !!order?.filename,
     });
 
     const { data: products } = useQuery<Product[]>({
@@ -62,7 +62,7 @@ const OrderDetails = () => {
                 } else if (qty > 0) {
                     promises.push(orderApi.create({
                         dist_id: order.dist_id,
-                        po_number: order.po_number,
+                        filename: order.filename,
                         po_date: order.po_date,
                         dlv_date: order.dlv_date,
                         principle: order.principle,
@@ -80,7 +80,7 @@ const OrderDetails = () => {
             return Promise.all(promises);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['po-lines', order?.po_number] });
+            queryClient.invalidateQueries({ queryKey: ['po-lines', order?.filename] });
             alert('Draft saved successfully!');
         },
     });
@@ -158,8 +158,8 @@ const OrderDetails = () => {
             {/* Info Bar */}
             <div className="bg-neutral-800 text-white px-6 py-4 grid grid-cols-4 gap-4">
                 <div>
-                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">PO Number</span>
-                    <span className="text-sm font-medium">{order?.po_number}</span>
+                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Filename (PO)</span>
+                    <span className="text-sm font-medium">{order?.filename}</span>
                 </div>
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Principal</span>

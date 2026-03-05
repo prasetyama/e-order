@@ -23,6 +23,7 @@ export interface OrderFilters {
     principle?: string;
     periode?: string;
     po_number?: string;
+    filename?: string;
     status?: 'DRAFT' | 'SUBMITTED' | 'CANCELLED';
     grouped?: boolean;
 }

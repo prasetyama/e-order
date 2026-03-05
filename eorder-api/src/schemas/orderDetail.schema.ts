@@ -3,7 +3,6 @@ import { z } from 'zod';
 export const createOrderDetailSchema = z.object({
     dist_id: z.number().int(),
     po_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format: YYYY-MM-DD'),
-    po_number: z.string().max(45).optional(),
     dlv_date: z.string().optional(),
     principle: z.string().max(255),
     sku: z.string().max(15).nullable().optional(),
@@ -20,7 +19,6 @@ export const createOrderDetailSchema = z.object({
 
 export const updateOrderDetailSchema = z.object({
     po_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format: YYYY-MM-DD').optional(),
-    po_number: z.string().max(45).optional(),
     dlv_date: z.string().optional(),
     principle: z.string().max(255).optional(),
     sku: z.string().max(15).nullable().optional(),
@@ -54,7 +52,6 @@ export interface OrderDetail {
     id: number;
     dist_id: number;
     po_date: string;
-    po_number: string;
     dlv_date: string | null;
     principle: string;
     sku: string;
