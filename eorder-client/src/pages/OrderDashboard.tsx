@@ -11,6 +11,17 @@ const OrderDashboard = () => {
         queryFn: () => orderApi.getAll({ grouped: true } as any),
     });
 
+    const order_type_map: Record<number, string> = {
+        1: 'Fix',
+        2: 'Additional',
+        3: 'Urgent Order',
+    };
+
+    const principal_map: Record<string, string> = {
+        'A00703': 'PT. PERUSAHAAN INDUSTRI CERES',
+        'A00NL1': 'PT. NIRWANA LESTARI',
+    };
+
     return (
         <div className="flex flex-col h-full">
             <div className="p-6 border-b border-neutral-100 bg-neutral-50/50">
@@ -77,8 +88,8 @@ const OrderDashboard = () => {
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <div className="text-sm font-bold text-[#A51C24]">{order.filename}</div>
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600 font-medium">{order.principle}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order.order_type || 'N/A'}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600 font-medium">{principal_map[order.principle] || 'N/A'}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order_type_map[parseInt(order.order_type)] || 'N/A'}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-center text-neutral-600">{order.total_sku || 0}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-center text-[#A51C24]">{order.total_qty || 0}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order.periode ? new Date(order.periode).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'N/A'}</td>

@@ -11,8 +11,8 @@ const CreateOrder = () => {
     const queryClient = useQueryClient();
     const [formData, setFormData] = useState({
         dist_id: '',
-        principle: 'PT. PERUSAHAAN INDUSTRI CERES',
-        order_type: 'Urgent Order',
+        principle: 'A00703', // PT PERUSAHAAN INDUSTRI CERES
+        order_type: '3', // Urgent Order
         periode: new Date().toISOString().split('T')[0],
         po_date: new Date().toISOString().split('T')[0],
         dlv_date: '',
@@ -85,8 +85,8 @@ const CreateOrder = () => {
                                         value={formData.principle}
                                         onChange={(e) => setFormData({ ...formData, principle: e.target.value })}
                                     >
-                                        <option>PT. PERUSAHAAN INDUSTRI CERES</option>
-                                        <option>PT. NIRWANA LESTARI</option>
+                                        <option value="A00703">PT. PERUSAHAAN INDUSTRI CERES</option>
+                                        <option value="A00NL1">PT. NIRWANA LESTARI</option>
                                     </select>
                                 </div>
                                 <div>
@@ -96,9 +96,7 @@ const CreateOrder = () => {
                                         value={formData.order_type}
                                         onChange={(e) => setFormData({ ...formData, order_type: e.target.value })}
                                     >
-                                        <option>Urgent Order</option>
-                                        <option>Normal Order</option>
-                                        <option>Buffer Stock</option>
+                                        <option value={3}>Urgent Order</option>
                                     </select>
                                 </div>
                             </div>
