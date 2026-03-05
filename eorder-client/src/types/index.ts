@@ -18,6 +18,7 @@ export interface OrderDetail {
     created_date: string;
     order_type?: string;
     periode?: string;
+    filename: string;
 }
 
 export interface Product {

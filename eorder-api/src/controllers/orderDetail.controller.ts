@@ -9,6 +9,7 @@ export const orderDetailController = {
                 principle: req.query.principle as string | undefined,
                 periode: req.query.periode as string | undefined,
                 po_number: req.query.po_number as string | undefined,
+                filename: req.query.filename as string | undefined,
                 status: req.query.status as string | undefined,
                 grouped: req.query.grouped as string | undefined,
             };

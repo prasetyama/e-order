@@ -57,7 +57,7 @@ export interface OrderDetail {
     order_qty: number;
     uom: string;
     stock_on_hand: number;
-    filename: string | null;
+    filename: string;
     error_flag: string | null;
     error_notes: string | null;
     release_flag: string | null;

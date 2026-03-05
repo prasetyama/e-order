@@ -9,6 +9,7 @@ interface Filters {
     principle?: string;
     periode?: string;
     po_number?: string;
+    filename?: string;
     status?: 'DRAFT' | 'SUBMITTED' | 'CANCELLED';
     grouped?: boolean;
 }
@@ -20,7 +21,6 @@ const SELECT_QUERY = `
         Id as id,
         CAST(DistId AS UNSIGNED) as dist_id,
         OrderDate as po_date,
-        FileName as po_number,
         RddDate as dlv_date,
         Principal as principle,
         Sku as sku,
@@ -66,7 +66,7 @@ export const orderDetailRepository = {
     async findAll(filters: Filters = {}): Promise<OrderDetail[]> {
         const isGrouped = !!filters.grouped;
         const selectFields = isGrouped
-            ? 'ANY_VALUE(id) as id, ANY_VALUE(dist_id) as dist_id, ANY_VALUE(po_date) as po_date, ANY_VALUE(dlv_date) as dlv_date, ANY_VALUE(principle) as principle, ANY_VALUE(status) as status, ANY_VALUE(order_type) as order_type, ANY_VALUE(periode) as periode, ANY_VALUE(created_by) as created_by, ANY_VALUE(created_date) as created_date, ANY_VALUE(modified_by) as modified_by, ANY_VALUE(modified_date) as modified_date'
+            ? 'ANY_VALUE(id) as id, ANY_VALUE(dist_id) as dist_id, ANY_VALUE(po_date) as po_date, ANY_VALUE(dlv_date) as dlv_date, ANY_VALUE(principle) as principle, ANY_VALUE(status) as status, ANY_VALUE(order_type) as order_type, ANY_VALUE(periode) as periode, filename, ANY_VALUE(created_by) as created_by, ANY_VALUE(created_date) as created_date, ANY_VALUE(modified_by) as modified_by, ANY_VALUE(modified_date) as modified_date'
             : '*';
 
         let sql = `SELECT ${selectFields} FROM (${SELECT_QUERY}) as t WHERE 1=1`;
@@ -84,9 +84,9 @@ export const orderDetailRepository = {
             sql += ' AND periode = ?';
             params.push(filters.periode);
         }
-        if (filters.po_number) {
-            sql += ' AND po_number = ?';
-            params.push(filters.po_number);
+        if (filters.filename || filters.po_number) {
+            sql += ' AND filename = ?';
+            params.push(filters.filename || filters.po_number);
         }
         if (filters.status) {
             sql += ' AND status = ?';
@@ -94,7 +94,7 @@ export const orderDetailRepository = {
         }
 
         if (filters.grouped) {
-            sql += ' GROUP BY po_number';
+            sql += ' GROUP BY filename';
         }
 
         sql += ' ORDER BY id DESC';

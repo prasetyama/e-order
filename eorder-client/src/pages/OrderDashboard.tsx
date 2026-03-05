@@ -39,7 +39,7 @@ const OrderDashboard = () => {
                     </div>
                     <div className="flex-1 px-4 relative">
                         <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
-                        <input type="text" placeholder="Search PO Number..." className="w-full h-9 pl-10 rounded border-neutral-200 text-sm focus:ring-[#A51C24]" />
+                        <input type="text" placeholder="Search Order Id..." className="w-full h-9 pl-10 rounded border-neutral-200 text-sm focus:ring-[#A51C24]" />
                     </div>
                     <Button variant="outline" size="sm" className="h-9">
                         <Filter size={16} className="mr-2" />
@@ -72,7 +72,7 @@ const OrderDashboard = () => {
                                     <tr key={order.id} className="hover:bg-neutral-50 transition-colors">
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-500 font-medium">{index + 1}</td>
                                         <td className="px-4 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-bold text-[#A51C24]">{order.po_number}</div>
+                                            <div className="text-sm font-bold text-[#A51C24]">{order.filename}</div>
                                             <div className="text-[10px] text-neutral-400 font-medium uppercase tracking-tight">ID: {order.id}</div>
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600 font-medium">{order.principle}</td>
