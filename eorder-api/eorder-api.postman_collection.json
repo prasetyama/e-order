@@ -159,7 +159,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"order_qty\": 20,\n    \"uom\": \"BOX\",\n    \"modified_by\": \"admin\"\n}"
+                            "raw": "{\n    \"po_number\": \"PO-UPDATE-001\",\n    \"order_qty\": 25,\n    \"principle\": \"Updated Principle\",\n    \"modified_by\": \"admin\"\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/order-details/1",

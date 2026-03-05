@@ -14,15 +14,17 @@ export const orderDetailService = {
         dist_id?: string;
         principle?: string;
         periode?: string;
-        po_number?: string;
+        filename?: string;
         status?: string;
+        grouped?: string;
     }) {
         const parsedFilters = {
             dist_id: filters.dist_id ? parseInt(filters.dist_id) : undefined,
             principle: filters.principle,
             periode: filters.periode,
-            po_number: filters.po_number,
+            filename: filters.filename,
             status: filters.status as any,
+            grouped: filters.grouped === 'true',
         };
         return orderDetailRepository.findAll(parsedFilters);
     },

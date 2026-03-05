@@ -8,8 +8,9 @@ export const orderDetailController = {
                 dist_id: req.query.dist_id as string | undefined,
                 principle: req.query.principle as string | undefined,
                 periode: req.query.periode as string | undefined,
-                po_number: req.query.po_number as string | undefined,
+                filename: req.query.filename as string | undefined,
                 status: req.query.status as string | undefined,
+                grouped: req.query.grouped as string | undefined,
             };
             const orders = await orderDetailService.getAll(filters);
             res.json({ success: true, data: orders });

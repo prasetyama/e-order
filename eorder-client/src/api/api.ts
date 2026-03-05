@@ -11,12 +11,21 @@ export const distributorApi = {
     },
 };
 
+export const productsApi = {
+    getAll: async () => {
+        const response = await api.get('/products');
+        return response.data.data;
+    },
+};
+
 export interface OrderFilters {
     dist_id?: number;
     principle?: string;
     periode?: string;
     po_number?: string;
+    filename?: string;
     status?: 'DRAFT' | 'SUBMITTED' | 'CANCELLED';
+    grouped?: boolean;
 }
 
 export const orderApi = {

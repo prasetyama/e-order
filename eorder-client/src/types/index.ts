@@ -1,11 +1,12 @@
 export interface Distributor {
-    dist_id: number;
-    dist_name: string;
-    dist_code: string;
+    DistID: number;
+    DistName: string;
+    DistShort: string;
 }
 
 export interface OrderDetail {
     id: number;
+    dist_id: number;
     po_number: string;
     po_date: string;
     dlv_date: string;
@@ -17,11 +18,15 @@ export interface OrderDetail {
     created_date: string;
     order_type?: string;
     periode?: string;
+    filename: string;
+    total_sku?: number;
+    total_qty?: number;
 }
 
 export interface Product {
-    sku: string;
-    description: string;
-    uom: string;
+    Material_Code: string;
+    Material_Description: string;
+    CRT2PLT: number;
+    BASEUOM: string;
     price: number;
 }

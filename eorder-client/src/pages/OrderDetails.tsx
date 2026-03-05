@@ -1,22 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
-import { orderApi } from '../api/api';
+import { orderApi, productsApi } from '../api/api';
 import { Button } from '../components/ui/UI';
-import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp } from 'lucide-react';
+import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
-
-const MOCK_PRODUCTS = [
-    { sku: 'F0011453', description: 'DELFI ORION K RICE POTCHEESE 1x10x100.8g', uom: 'CS', price: 151500 },
-    { sku: 'F0001733', description: 'FISHERMANS SF BLACKCURRANT 1/12/24/25 G', uom: 'CS', price: 3571200 },
-    { sku: 'F0011170', description: 'PRINGLES SPICY TEXAS BBQ 1x12x102g', uom: 'CS', price: 213480 },
-    { sku: 'F0002940', description: 'RICOLA LEMON MINT DRUM 1X6X24X100G', uom: 'CS', price: 3931200 },
-    { sku: 'F0011399', description: 'AKU SAUS SAMBAL 1x12x250mL', uom: 'CS', price: 85000 },
-    { sku: 'F0011400', description: 'AKU SAUS SAMBAL EXTRA PEDAS 1x12x250mL', uom: 'CS', price: 87500 },
-    { sku: 'F0011401', description: 'AKU SAUS TOMAT 1x12x250mL', uom: 'CS', price: 82000 },
-    { sku: 'F0011402', description: 'AKU SAMBAL EXTRA PEDAS SACHET 1x500x9g', uom: 'CS', price: 120500 },
-    { sku: 'F0011403', description: 'AKU SAUS TOMAT SACHET 1x500x9g', uom: 'CS', price: 115000 },
-];
+import type { Product } from '../types';
 
 const OrderDetails = () => {
     const { id } = useParams<{ id: string }>();
@@ -24,17 +13,75 @@ const OrderDetails = () => {
     const queryClient = useQueryClient();
     const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-    const { data: order, isLoading } = useQuery({
+    // Fetch single order to get PO Number and metadata
+    const { data: order, isLoading: isOrderLoading } = useQuery({
         queryKey: ['order', id],
         queryFn: () => orderApi.getById(parseInt(id!)),
         enabled: !!id,
     });
 
-    const updateMutation = useMutation({
-        mutationFn: (data: any) => orderApi.update(parseInt(id!), data),
+    // Fetch all lines for this Filename
+    const { data: poLines } = useQuery({
+        queryKey: ['po-lines', order?.filename],
+        queryFn: () => orderApi.getAll({ filename: order?.filename }),
+        enabled: !!order?.filename,
+    });
+
+    const { data: products } = useQuery<Product[]>({
+        queryKey: ['products'],
+        queryFn: () => productsApi.getAll()
+    });
+
+    // Sync state when data changes
+    useEffect(() => {
+        if (poLines) {
+            const qtys: Record<string, number> = {};
+            poLines.forEach((line: any) => {
+                qtys[line.sku] = line.order_qty;
+            });
+            setQuantities(qtys);
+        }
+    }, [poLines]);
+
+    const saveMutation = useMutation({
+        mutationFn: async () => {
+            if (!order) return;
+            const promises = [];
+
+            for (const product of products || []) {
+                const qty = quantities[product.Material_Code] || 0;
+                const existingLine = poLines?.find((l: any) => l.sku === product.Material_Code);
+
+                if (existingLine) {
+                    if (qty !== existingLine.order_qty) {
+                        promises.push(orderApi.update(existingLine.id, {
+                            order_qty: qty,
+                            modified_by: 'admin'
+                        }));
+                    }
+                } else if (qty > 0) {
+                    promises.push(orderApi.create({
+                        dist_id: order.dist_id,
+                        filename: order.filename,
+                        po_date: order.po_date,
+                        dlv_date: order.dlv_date,
+                        principle: order.principle,
+                        sku: product.Material_Code,
+                        product_name: product.Material_Description,
+                        crt2plt: product.CRT2PLT,
+                        order_qty: qty,
+                        uom: product.BASEUOM,
+                        created_by: 'admin',
+                        periode: order.periode,
+                        order_type: order.order_type
+                    }));
+                }
+            }
+            return Promise.all(promises);
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['order', id] });
-            alert('Order saved as draft!');
+            queryClient.invalidateQueries({ queryKey: ['po-lines', order?.filename] });
+            alert('Draft saved successfully!');
         },
     });
 
@@ -51,7 +98,7 @@ const OrderDetails = () => {
         setQuantities(prev => ({ ...prev, [sku]: val }));
     };
 
-    if (isLoading) return <div className="p-10 text-center">Loading order...</div>;
+    if (isOrderLoading) return <div className="p-10 text-center">Loading order...</div>;
 
     return (
         <div className="flex flex-col h-full bg-neutral-50/50">
@@ -90,18 +137,19 @@ const OrderDetails = () => {
                         variant="outline"
                         size="sm"
                         className="h-9 bg-white text-neutral-700 hover:bg-neutral-50"
-                        onClick={() => updateMutation.mutate({})} // Just demoing save
+                        onClick={() => saveMutation.mutate()}
+                        disabled={saveMutation.isPending || order?.status !== 'DRAFT'}
                     >
-                        <Save size={14} className="mr-2" />
+                        {saveMutation.isPending ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Save size={14} className="mr-2" />}
                         Save Draft
                     </Button>
                     <Button
                         size="sm"
                         className="h-9"
                         onClick={() => submitMutation.mutate()}
-                        disabled={order?.status !== 'DRAFT'}
+                        disabled={order?.status !== 'DRAFT' || submitMutation.isPending}
                     >
-                        <Send size={14} className="mr-2" />
+                        {submitMutation.isPending ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Send size={14} className="mr-2" />}
                         Submit Order
                     </Button>
                 </div>
@@ -110,8 +158,8 @@ const OrderDetails = () => {
             {/* Info Bar */}
             <div className="bg-neutral-800 text-white px-6 py-4 grid grid-cols-4 gap-4">
                 <div>
-                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">PO Number</span>
-                    <span className="text-sm font-medium">{order?.po_number}</span>
+                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Order Id</span>
+                    <span className="text-sm font-medium">{order?.filename}</span>
                 </div>
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Principal</span>
@@ -142,23 +190,23 @@ const OrderDetails = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-neutral-100">
-                            {MOCK_PRODUCTS.map((product, index) => (
-                                <tr key={product.sku} className="hover:bg-neutral-50/50">
+                            {products?.map((product, index) => (
+                                <tr key={product.Material_Code} className="hover:bg-neutral-50/50">
                                     <td className="px-4 py-2 whitespace-nowrap text-xs text-neutral-400 font-medium text-center">{index + 1}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap text-xs font-bold text-[#A51C24]">{product.sku}</td>
-                                    <td className="px-4 py-2 text-xs text-neutral-700 font-medium">{product.description}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-xs font-bold text-[#A51C24]">{product.Material_Code}</td>
+                                    <td className="px-4 py-2 text-xs text-neutral-700 font-medium">{product.Material_Description}</td>
                                     <td className="px-4 py-2 whitespace-nowrap">
                                         <input
                                             type="number"
                                             className="w-full h-8 text-center text-xs font-bold border-neutral-200 rounded focus:ring-[#A51C24]"
-                                            value={quantities[product.sku] || 0}
-                                            onChange={(e) => handleQtyChange(product.sku, e.target.value)}
+                                            value={quantities[product.Material_Code] || 0}
+                                            onChange={(e) => handleQtyChange(product.Material_Code, e.target.value)}
                                             disabled={order?.status !== 'DRAFT'}
                                         />
                                     </td>
-                                    <td className="px-4 py-2 whitespace-nowrap text-xs text-center text-neutral-500 font-bold">{product.uom}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-xs text-center text-neutral-500 font-bold">{product.BASEUOM}</td>
                                     <td className="px-4 py-2 whitespace-nowrap text-xs text-right text-neutral-600 font-medium">
-                                        {product.price.toLocaleString()}
+                                        {product.price}
                                     </td>
                                 </tr>
                             ))}
