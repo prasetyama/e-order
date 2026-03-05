@@ -27,4 +27,8 @@ app.get('/api/health', (_req, res) => {
 // ─── Error Handler (must be last) ────────────────────────────────────
 app.use(errorHandler);
 
+app.listen(3002, '0.0.0.0', () => {
+  console.log('Server running on port 3002');
+});
+
 export default app;
