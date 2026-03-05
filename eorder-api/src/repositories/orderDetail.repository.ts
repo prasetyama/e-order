@@ -13,45 +13,60 @@ interface Filters {
     grouped?: boolean;
 }
 
+const DRAFT_TABLE = 'eorder.eorder_draforderdistributor';
+
 const SELECT_QUERY = `
     SELECT 
-        id,
-        distid as dist_id,
-        ponumber as po_number,
-        podate as po_date,
-        dlvdate as dlv_date,
-        principal as principle,
-        sku,
-        orderqty as order_qty,
-        uom,
-        stockonhand as stock_on_hand,
-        filename,
-        error_flag,
-        error_notes,
-        release_flag,
-        release_notes,
-        transfer_flag,
-        order_type,
-        periode,
-        MODIFIEDBY as modified_by,
-        MODIFIEDDATE as modified_date,
-        CREATEBY as created_by,
-        CREATEDATE as created_date,
-        cancel_flag,
-        notes as cancel_notes,
-        CASE 
-            WHEN cancel_flag = 'Y' THEN 'CANCELLED'
-            WHEN release_flag = 'Y' THEN 'SUBMITTED'
-            ELSE 'DRAFT'
-        END as status
-    FROM eorder_eorderdatadtl
+        Id as id,
+        CAST(DistId AS UNSIGNED) as dist_id,
+        OrderDate as po_date,
+        FileName as po_number,
+        RddDate as dlv_date,
+        Principal as principle,
+        Sku as sku,
+        OrderQty as order_qty,
+        UOM as uom,
+        StockOnHand as stock_on_hand,
+        FileName as filename,
+        NULL as error_flag,
+        NULL as error_notes,
+        Flag as release_flag,
+        NULL as release_notes,
+        NULL as transfer_flag,
+        OrderType as order_type,
+        PeriodeOrder as periode,
+        NULL as modified_by,
+        NULL as modified_date,
+        CreateBy as created_by,
+        CreateDate as created_date,
+        NULL as cancel_flag,
+        NULL as cancel_notes,
+        'DRAFT' as status
+    FROM ${DRAFT_TABLE}
 `;
+
+/**
+ * Generate FileName (used as po_number) with format: {{distid}}{{periode_order}}{{kodePrincipal}}
+ * Example: 010520202503PIC
+ */
+function generateFileName(distId: number | string, periodeOrder: string | null | undefined, principal: string): string {
+    const distIdStr = String(distId);
+    // Format periode: remove dashes from YYYY-MM-DD -> YYYYMMDD or use YYYYMM
+    const periodeStr = periodeOrder ? periodeOrder.replace(/-/g, '') : '';
+    // Generate a short code from the principal name (first letters of each word)
+    const kodePrincipal = principal
+        .split(/[\s.]+/)
+        .filter(w => w.length > 0)
+        .map(w => w[0].toUpperCase())
+        .join('');
+    return `${distIdStr}${periodeStr}${kodePrincipal}`;
+}
 
 export const orderDetailRepository = {
     async findAll(filters: Filters = {}): Promise<OrderDetail[]> {
         const isGrouped = !!filters.grouped;
         const selectFields = isGrouped
-            ? 'ANY_VALUE(id) as id, ANY_VALUE(dist_id) as dist_id, po_number, ANY_VALUE(po_date) as po_date, ANY_VALUE(dlv_date) as dlv_date, ANY_VALUE(principle) as principle, ANY_VALUE(status) as status, ANY_VALUE(order_type) as order_type, ANY_VALUE(periode) as periode, ANY_VALUE(created_by) as created_by, ANY_VALUE(created_date) as created_date, ANY_VALUE(modified_by) as modified_by, ANY_VALUE(modified_date) as modified_date'
+            ? 'ANY_VALUE(id) as id, ANY_VALUE(dist_id) as dist_id, ANY_VALUE(po_date) as po_date, ANY_VALUE(dlv_date) as dlv_date, ANY_VALUE(principle) as principle, ANY_VALUE(status) as status, ANY_VALUE(order_type) as order_type, ANY_VALUE(periode) as periode, ANY_VALUE(created_by) as created_by, ANY_VALUE(created_date) as created_date, ANY_VALUE(modified_by) as modified_by, ANY_VALUE(modified_date) as modified_date'
             : '*';
 
         let sql = `SELECT ${selectFields} FROM (${SELECT_QUERY}) as t WHERE 1=1`;
@@ -99,72 +114,80 @@ export const orderDetailRepository = {
     async create(data: CreateOrderDetailInput): Promise<OrderDetail> {
         const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        // Sync CREATEDATE with other items in the same PO
-        const [existing] = await pool.query<RowDataPacket[]>(
-            'SELECT CREATEDATE FROM eorder_eorderdatadtl WHERE ponumber = ? LIMIT 1',
-            [data.po_number]
+        // Generate the next Id (table has no auto_increment)
+        const [maxIdResult] = await pool.query<RowDataPacket[]>(
+            `SELECT COALESCE(MAX(Id), 0) + 1 as nextId FROM ${DRAFT_TABLE}`
         );
-        const syncedCreatedDate = existing[0]?.CREATEDATE || now;
+        const nextId = maxIdResult[0].nextId;
+
+        // Generate or use provided FileName (po_number)
+        const fileName = (data as any).po_number || generateFileName(data.dist_id, data.periode, data.principle);
+
+        // Sync CreateDate with other items that have the same FileName (po_number)
+        const [existing] = await pool.query<RowDataPacket[]>(
+            `SELECT CreateDate FROM ${DRAFT_TABLE} WHERE FileName = ? LIMIT 1`,
+            [fileName]
+        );
+        const syncedCreatedDate = existing[0]?.CreateDate || now;
 
         const [result] = await pool.query<ResultSetHeader>(
-            `INSERT INTO eorder_eorderdatadtl 
-            (distid, ponumber, podate, dlvdate, principal, sku, orderqty, uom, stockonhand, filename, order_type, periode, CREATEBY, CREATEDATE) 
+            `INSERT INTO ${DRAFT_TABLE} 
+            (Id, DistId, OrderDate, Principal, PeriodeOrder, OrderType, Sku, OrderQty, UOM, StockOnHand, FileName, RddDate, CreateBy, CreateDate) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
+                nextId,
                 data.dist_id,
-                data.po_number,
                 data.po_date,
-                data.dlv_date,
                 data.principle,
+                data.periode ?? null,
+                data.order_type ?? null,
                 data.sku ?? null,
                 data.order_qty ?? null,
                 data.uom ?? null,
                 data.stock_on_hand ?? 0,
-                data.filename ?? null,
-                data.order_type ?? null,
-                data.periode ?? null,
+                fileName,
+                (data as any).dlv_date ?? null,
                 data.created_by ?? null,
                 syncedCreatedDate,
             ]
         );
 
-        const created = await this.findById(result.insertId);
+        const created = await this.findById(nextId);
         return created!;
     },
 
     async update(id: number, data: UpdateOrderDetailInput): Promise<OrderDetail | null> {
         const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-        // Fetch existing po_number for the record being updated
+        // Fetch existing FileName for the record being updated
         const [currentRow] = await pool.query<RowDataPacket[]>(
-            'SELECT ponumber FROM eorder_eorderdatadtl WHERE id = ?',
+            `SELECT FileName FROM ${DRAFT_TABLE} WHERE Id = ?`,
             [id]
         );
-        const poNumber = currentRow[0]?.ponumber;
+        const currentFileName = currentRow[0]?.FileName;
 
-        // Fetch the standardized CREATEDATE for this PO
+        // Fetch the standardized CreateDate for this FileName group
         let syncedCreatedDate = null;
-        if (poNumber) {
+        if (currentFileName) {
             const [existing] = await pool.query<RowDataPacket[]>(
-                'SELECT CREATEDATE FROM eorder_eorderdatadtl WHERE ponumber = ? AND id != ? LIMIT 1',
-                [poNumber, id]
+                `SELECT CreateDate FROM ${DRAFT_TABLE} WHERE FileName = ? AND Id != ? LIMIT 1`,
+                [currentFileName, id]
             );
-            syncedCreatedDate = existing[0]?.CREATEDATE;
+            syncedCreatedDate = existing[0]?.CreateDate;
         }
 
         const columnMap: Record<string, string> = {
-            po_number: 'ponumber',
-            po_date: 'podate',
-            dlv_date: 'dlvdate',
-            principle: 'principal',
-            sku: 'sku',
-            order_qty: 'orderqty',
-            uom: 'uom',
-            stock_on_hand: 'stockonhand',
-            filename: 'filename',
-            order_type: 'order_type',
-            periode: 'periode',
-            modified_by: 'MODIFIEDBY',
+            po_date: 'OrderDate',
+            po_number: 'FileName',
+            dlv_date: 'RddDate',
+            principle: 'Principal',
+            sku: 'Sku',
+            order_qty: 'OrderQty',
+            uom: 'UOM',
+            stock_on_hand: 'StockOnHand',
+            filename: 'FileName',
+            order_type: 'OrderType',
+            periode: 'PeriodeOrder',
         };
 
         const fields: string[] = [];
@@ -178,26 +201,21 @@ export const orderDetailRepository = {
             }
         }
 
-        // Apply synced CREATEDATE if found
+        // Apply synced CreateDate if found
         if (syncedCreatedDate) {
-            fields.push('CREATEDATE = ?');
+            fields.push('CreateDate = ?');
             params.push(syncedCreatedDate);
         }
 
         if (fields.length === 0) {
-            fields.push('MODIFIEDDATE = ?');
-            params.push(now);
-        } else {
-            if (!fields.some(f => f.startsWith('MODIFIEDDATE'))) {
-                fields.push('MODIFIEDDATE = ?');
-                params.push(now);
-            }
+            // Nothing to update
+            return this.findById(id);
         }
 
         params.push(id);
 
         await pool.query<ResultSetHeader>(
-            `UPDATE eorder_eorderdatadtl SET ${fields.join(', ')} WHERE id = ?`,
+            `UPDATE ${DRAFT_TABLE} SET ${fields.join(', ')} WHERE Id = ?`,
             params
         );
 
@@ -208,21 +226,19 @@ export const orderDetailRepository = {
         const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         await pool.query<ResultSetHeader>(
-            `UPDATE eorder_eorderdatadtl SET release_flag = 'Y', release_notes = ?, MODIFIEDBY = ?, MODIFIEDDATE = ? WHERE id = ?`,
-            [notes ?? null, modifiedBy ?? null, now, id]
+            `UPDATE ${DRAFT_TABLE} SET Flag = 1 WHERE Id = ?`,
+            [id]
         );
 
         return this.findById(id);
     },
 
     async cancel(id: number, notes?: string, modifiedBy?: string): Promise<OrderDetail | null> {
-        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
         await pool.query<ResultSetHeader>(
-            `UPDATE eorder_eorderdatadtl SET cancel_flag = 'Y', notes = ?, MODIFIEDBY = ?, MODIFIEDDATE = ? WHERE id = ?`,
-            [notes ?? null, modifiedBy ?? null, now, id]
+            `DELETE FROM ${DRAFT_TABLE} WHERE Id = ?`,
+            [id]
         );
 
-        return this.findById(id);
+        return null;
     },
 };

@@ -14,9 +14,8 @@ const CreateOrder = () => {
         principle: 'PT. PERUSAHAAN INDUSTRI CERES',
         order_type: 'Urgent Order',
         periode: new Date().toISOString().split('T')[0],
-        po_number: `PO-${Date.now()}`,
         po_date: new Date().toISOString().split('T')[0],
-        dlv_date: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
+        dlv_date: '',
         sku: '',
         order_qty: 0,
         uom: 'CS',
@@ -105,11 +104,6 @@ const CreateOrder = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <Input
-                                    label="PO Number"
-                                    value={formData.po_number}
-                                    onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
-                                />
                                 <Input
                                     label="Choose Period"
                                     type="date"

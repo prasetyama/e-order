@@ -7,18 +7,6 @@ import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp, Loader2 } from 'luc
 import { clsx } from 'clsx';
 import type { Product } from '../types';
 
-const MOCK_PRODUCTS = [
-    { sku: 'F0011453', description: 'DELFI ORION K RICE POTCHEESE 1x10x100.8g', uom: 'CS', price: 151500 },
-    { sku: 'F0001733', description: 'FISHERMANS SF BLACKCURRANT 1/12/24/25 G', uom: 'CS', price: 3571200 },
-    { sku: 'F0011170', description: 'PRINGLES SPICY TEXAS BBQ 1x12x102g', uom: 'CS', price: 213480 },
-    { sku: 'F0002940', description: 'RICOLA LEMON MINT DRUM 1X6X24X100G', uom: 'CS', price: 3931200 },
-    { sku: 'F0011399', description: 'AKU SAUS SAMBAL 1x12x250mL', uom: 'CS', price: 85000 },
-    { sku: 'F0011400', description: 'AKU SAUS SAMBAL EXTRA PEDAS 1x12x250mL', uom: 'CS', price: 87500 },
-    { sku: 'F0011401', description: 'AKU SAUS TOMAT 1x12x250mL', uom: 'CS', price: 82000 },
-    { sku: 'F0011402', description: 'AKU SAMBAL EXTRA PEDAS SACHET 1x500x9g', uom: 'CS', price: 120500 },
-    { sku: 'F0011403', description: 'AKU SAUS TOMAT SACHET 1x500x9g', uom: 'CS', price: 115000 },
-];
-
 const OrderDetails = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -33,7 +21,7 @@ const OrderDetails = () => {
     });
 
     // Fetch all lines for this PO Number
-    const { data: poLines, isLoading: isLinesLoading } = useQuery({
+    const { data: poLines } = useQuery({
         queryKey: ['po-lines', order?.po_number],
         queryFn: () => orderApi.getAll({ po_number: order?.po_number }),
         enabled: !!order?.po_number,
