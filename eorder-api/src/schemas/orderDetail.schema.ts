@@ -43,7 +43,18 @@ export const submitOrderDetailSchema = z.object({
     modified_by: z.string().max(45).optional(),
 });
 
+export const initializeOrderDetailSchema = z.object({
+    dist_id: z.number().int(),
+    principle: z.string().max(6),
+    order_type: z.string().max(20).optional(),
+    periode: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format: YYYY-MM-DD').nullable().optional(),
+    po_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format: YYYY-MM-DD'),
+    dlv_date: z.string().nullable().optional(),
+    created_by: z.string().max(45).nullable().optional(),
+});
+
 export type CreateOrderDetailInput = z.infer<typeof createOrderDetailSchema>;
+export type InitializeOrderDetailInput = z.infer<typeof initializeOrderDetailSchema>;
 export type UpdateOrderDetailInput = z.infer<typeof updateOrderDetailSchema>;
 export type CancelOrderDetailInput = z.infer<typeof cancelOrderDetailSchema>;
 export type SubmitOrderDetailInput = z.infer<typeof submitOrderDetailSchema>;

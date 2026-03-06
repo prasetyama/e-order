@@ -1,6 +1,7 @@
 import { orderDetailRepository } from '../repositories/orderDetail.repository';
 import {
     createOrderDetailSchema,
+    initializeOrderDetailSchema,
     updateOrderDetailSchema,
     cancelOrderDetailSchema,
     submitOrderDetailSchema,
@@ -40,6 +41,11 @@ export const orderDetailService = {
     async create(data: unknown) {
         const validated = createOrderDetailSchema.parse(data) as CreateOrderDetailInput;
         return orderDetailRepository.create(validated);
+    },
+
+    async initialize(data: unknown) {
+        const validated = initializeOrderDetailSchema.parse(data);
+        return orderDetailRepository.initialize(validated);
     },
 
     async update(id: number, data: unknown) {

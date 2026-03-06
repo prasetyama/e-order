@@ -41,6 +41,10 @@ export const orderApi = {
         const response = await api.post('/order-details', data);
         return response.data.data;
     },
+    initialize: async (data: any) => {
+        const response = await api.post('/order-details/initialize', data);
+        return response.data.data;
+    },
     update: async (id: number, data: any) => {
         const response = await api.patch(`/order-details/${id}`, data);
         return response.data.data;

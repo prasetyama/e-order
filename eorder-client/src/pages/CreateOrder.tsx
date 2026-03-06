@@ -11,14 +11,13 @@ const CreateOrder = () => {
     const queryClient = useQueryClient();
     const [formData, setFormData] = useState({
         dist_id: '',
-        principle: 'PT. PERUSAHAAN INDUSTRI CERES',
-        order_type: 'Urgent Order',
+        principle: 'A00703', // PT PERUSAHAAN INDUSTRI CERES
+        order_type: '3', // Urgent Order
         periode: new Date().toISOString().split('T')[0],
         po_date: new Date().toISOString().split('T')[0],
         dlv_date: '',
-        sku: '',
-        order_qty: 0,
-        uom: 'CS',
+        formula: true,
+        auto_slip: true,
     });
 
     const { data: distributors } = useQuery<Distributor[]>({
@@ -27,10 +26,10 @@ const CreateOrder = () => {
     });
 
     const createMutation = useMutation({
-        mutationFn: orderApi.create,
+        mutationFn: orderApi.initialize,
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['orders'] });
-            navigate(`/order/${data.id}`);
+            navigate(`/order/${data.first_id}`);
         },
     });
 
@@ -85,8 +84,8 @@ const CreateOrder = () => {
                                         value={formData.principle}
                                         onChange={(e) => setFormData({ ...formData, principle: e.target.value })}
                                     >
-                                        <option>PT. PERUSAHAAN INDUSTRI CERES</option>
-                                        <option>PT. NIRWANA LESTARI</option>
+                                        <option value="A00703">PT. PERUSAHAAN INDUSTRI CERES</option>
+                                        <option value="A00NL1">PT. NIRWANA LESTARI</option>
                                     </select>
                                 </div>
                                 <div>
@@ -96,9 +95,7 @@ const CreateOrder = () => {
                                         value={formData.order_type}
                                         onChange={(e) => setFormData({ ...formData, order_type: e.target.value })}
                                     >
-                                        <option>Urgent Order</option>
-                                        <option>Normal Order</option>
-                                        <option>Buffer Stock</option>
+                                        <option value={3}>Urgent Order</option>
                                     </select>
                                 </div>
                             </div>
@@ -110,6 +107,40 @@ const CreateOrder = () => {
                                     value={formData.periode}
                                     onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
                                 />
+                            </div>
+
+                            <div className="pt-4 border-t border-neutral-100">
+                                <h3 className="text-sm font-bold text-green-600 underline italic mb-4">Order Preferences</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-4">
+                                        <label className="text-sm font-medium text-neutral-600 w-32">Use Formula</label>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-sm text-neutral-600">:</span>
+                                            <select
+                                                className="h-9 min-w-[80px] rounded border-neutral-300 text-sm focus:ring-[#A51C24] transition-shadow bg-white"
+                                                value={formData.formula ? '1' : '0'}
+                                                onChange={(e) => setFormData({ ...formData, formula: e.target.value === '1' })}
+                                            >
+                                                <option value="1">Yes</option>
+                                                <option value="0">No</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <label className="text-sm font-medium text-neutral-600 w-32">Auto Split PO / Week</label>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-sm text-neutral-600">:</span>
+                                            <select
+                                                className="h-9 min-w-[80px] rounded border-neutral-300 text-sm focus:ring-[#A51C24] transition-shadow bg-white"
+                                                value={formData.auto_slip ? '1' : '0'}
+                                                onChange={(e) => setFormData({ ...formData, auto_slip: e.target.value === '1' })}
+                                            >
+                                                <option value="1">Yes</option>
+                                                <option value="0">No</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
