@@ -69,6 +69,10 @@ export const orderDetailService = {
         return orderDetailRepository.submit(id, validated.release_notes, validated.modified_by);
     },
 
+    async submitBulk(filename: string) {
+        return orderDetailRepository.submitBulk(filename);
+    },
+
     async cancel(id: number, data: unknown) {
         // Check existence and status
         const existing = await this.getById(id);

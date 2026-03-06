@@ -49,8 +49,8 @@ export const orderApi = {
         const response = await api.patch(`/order-details/${id}`, data);
         return response.data.data;
     },
-    submit: async (id: number, data?: any) => {
-        const response = await api.patch(`/order-details/${id}/submit`, data);
+    submit: async (filename: string) => {
+        const response = await api.post('/order-details/submit', { filename });
         return response.data.data;
     },
 };

@@ -79,6 +79,20 @@ export const orderDetailController = {
         }
     },
 
+    submitBulk: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { filename } = req.body;
+            if (!filename) {
+                res.status(400).json({ success: false, error: { message: 'Filename is required' } });
+                return;
+            }
+            await orderDetailService.submitBulk(filename);
+            res.json({ success: true, message: 'Order submitted successfully' });
+        } catch (err) {
+            next(err);
+        }
+    },
+
     cancel: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const id = parseInt(req.params.id);

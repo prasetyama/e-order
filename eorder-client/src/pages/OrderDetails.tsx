@@ -86,7 +86,7 @@ const OrderDetails = () => {
     });
 
     const submitMutation = useMutation({
-        mutationFn: () => orderApi.submit(parseInt(id!)),
+        mutationFn: () => orderApi.submit(order!.filename),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['orders'] });
             navigate('/');
