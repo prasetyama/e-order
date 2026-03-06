@@ -32,6 +32,17 @@ const OrderDetails = () => {
         queryFn: () => productsApi.getAll()
     });
 
+    const order_type_map: Record<number, string> = {
+        1: 'Fix',
+        2: 'Additional',
+        3: 'Urgent Order',
+    };
+
+    const principal_map: Record<string, string> = {
+        'A00703': 'PT. PERUSAHAAN INDUSTRI CERES',
+        'A00NL1': 'PT. NIRWANA LESTARI',
+    };
+
     // Sync state when data changes
     useEffect(() => {
         if (poLines) {
@@ -173,11 +184,11 @@ const OrderDetails = () => {
                 </div>
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Principal</span>
-                    <span className="text-sm font-medium">{order?.principle}</span>
+                    <span className="text-sm font-medium">{principal_map[order?.principle || '']}</span>
                 </div>
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Order Type</span>
-                    <span className="text-sm font-medium">{order?.order_type || 'Urgent Order'}</span>
+                    <span className="text-sm font-medium">{order_type_map[order?.order_type || 0]}</span>
                 </div>
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Period</span>
