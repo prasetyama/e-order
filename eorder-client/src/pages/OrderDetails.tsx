@@ -98,6 +98,16 @@ const OrderDetails = () => {
         setQuantities(prev => ({ ...prev, [sku]: val }));
     };
 
+    const totalQty = Object.values(quantities).reduce((a, b) => a + b, 0);
+
+    const handleSubmit = () => {
+        if (totalQty === 0) {
+            alert('Cannot submit order with total quantity 0. Please update at least one item.');
+            return;
+        }
+        submitMutation.mutate();
+    };
+
     if (isOrderLoading) return <div className="p-10 text-center">Loading order...</div>;
 
     return (
@@ -146,7 +156,7 @@ const OrderDetails = () => {
                     <Button
                         size="sm"
                         className="h-9"
-                        onClick={() => submitMutation.mutate()}
+                        onClick={handleSubmit}
                         disabled={order?.status !== 'DRAFT' || submitMutation.isPending}
                     >
                         {submitMutation.isPending ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Send size={14} className="mr-2" />}
