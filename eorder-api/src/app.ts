@@ -9,8 +9,8 @@ const app = express();
 
 // ─── Middleware ───────────────────────────────────────────────────────
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
-    credentials: true,
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
 }));
 app.use(express.json());
 
@@ -21,14 +21,11 @@ app.use('/api/products', productRoutes);
 
 // ─── Health check ────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
-    res.json({ success: true, data: { status: 'ok', timestamp: new Date().toISOString() } });
+  res.json({ success: true, data: { status: 'ok', timestamp: new Date().toISOString() } });
 });
 
 // ─── Error Handler (must be last) ────────────────────────────────────
 app.use(errorHandler);
 
-app.listen(3002, '0.0.0.0', () => {
-  console.log('Server running on port 3002');
-});
 
 export default app;

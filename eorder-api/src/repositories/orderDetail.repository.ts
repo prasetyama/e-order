@@ -65,7 +65,7 @@ export const orderDetailRepository = {
     async findAll(filters: Filters = {}): Promise<OrderDetail[]> {
         const isGrouped = !!filters.grouped;
         const selectFields = isGrouped
-            ? 'ANY_VALUE(id) as id, ANY_VALUE(dist_id) as dist_id, ANY_VALUE(po_date) as po_date, ANY_VALUE(dlv_date) as dlv_date, ANY_VALUE(principle) as principle, ANY_VALUE(status) as status, ANY_VALUE(order_type) as order_type, ANY_VALUE(periode) as periode, filename, ANY_VALUE(created_by) as created_by, ANY_VALUE(created_date) as created_date, ANY_VALUE(modified_by) as modified_by, ANY_VALUE(modified_date) as modified_date, COUNT(sku) as total_sku, CAST(SUM(order_qty) AS UNSIGNED) as total_qty'
+            ? 'ANY_VALUE(id) as id, ANY_VALUE(dist_id) as dist_id, ANY_VALUE(po_date) as po_date, ANY_VALUE(dlv_date) as dlv_date, ANY_VALUE(principle) as principle, ANY_VALUE(status) as status, ANY_VALUE(order_type) as order_type, ANY_VALUE(periode) as periode, filename, ANY_VALUE(created_by) as created_by, ANY_VALUE(created_date) as created_date, ANY_VALUE(modified_by) as modified_by, ANY_VALUE(modified_date) as modified_date, COUNT(CASE WHEN order_qty > 0 THEN sku END) as total_sku, CAST(SUM(order_qty) AS UNSIGNED) as total_qty'
             : '*';
 
         let sql = `SELECT ${selectFields} FROM (${SELECT_QUERY}) as t WHERE 1=1`;
