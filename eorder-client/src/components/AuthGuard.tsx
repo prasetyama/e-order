@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { authApi } from '../api/api';
 
-const SSO_URL = 'https://sso.ceresnl.com?idp=eorder&callback=http://172.17.253.122:5173';
+const SSO_URL = 'https://sso.ceresnl.com?idp=eorder&callback=http://172.16.60.50:5173';
 const SSO_COOKIE_NAME = 'SSO_TOKEN';
 
 function getCookie(name: string): string | null {
@@ -16,13 +17,42 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
     useEffect(() => {
-        const token = getCookie(SSO_COOKIE_NAME);
-        if (!token) {
-            // No SSO cookie found, redirect to SSO login
-            window.location.href = SSO_URL;
-        } else {
-            setIsAuthenticated(true);
-        }
+        const checkAuth = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tokenParam = urlParams.get('token');
+            const cookie = getCookie(SSO_COOKIE_NAME);
+
+            if (!cookie) {
+
+                if (tokenParam) {
+                    try {
+                        // Validate token from URL param
+                        const response = await authApi.validateToken(tokenParam);
+                        if (response.success) {
+                            // Set cookie and set authenticated
+                            document.cookie = `${SSO_COOKIE_NAME}=${tokenParam}; path=/; max-age=86400`;
+                            setIsAuthenticated(true);
+
+                            // Clean up URL: remove token param without refreshing
+                            const newUrl = window.location.pathname + window.location.search.replace(/[?&]token=[^&]+/, '').replace(/^&/, '?');
+                            window.history.replaceState({}, '', newUrl);
+                        } else {
+                            window.location.href = SSO_URL;
+                        }
+                    } catch (error) {
+                        console.error('Token validation failed:', error);
+                        window.location.href = SSO_URL;
+                    }
+                } else {
+                    window.location.href = SSO_URL;
+                    return;
+                }
+            } else {
+                setIsAuthenticated(true);
+            }
+        };
+
+        checkAuth();
     }, []);
 
     // Still checking...

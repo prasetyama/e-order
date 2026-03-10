@@ -54,3 +54,10 @@ export const orderApi = {
         return response.data.data;
     },
 };
+
+export const authApi = {
+    validateToken: async (token: string) => {
+        const response = await api.post('/auth/validate-token', { token });
+        return response.data;
+    },
+};
