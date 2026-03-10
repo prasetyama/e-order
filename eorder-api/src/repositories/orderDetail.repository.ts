@@ -40,7 +40,7 @@ const SELECT_QUERY = `
         CreateDate as created_date,
         NULL as cancel_flag,
         NULL as cancel_notes,
-        'DRAFT' as status
+        CASE WHEN flag = '1' THEN 'SUBMITTED' ELSE 'DRAFT' END as status
     FROM ${DRAFT_TABLE}
 `;
 
@@ -251,6 +251,13 @@ export const orderDetailRepository = {
         );
 
         return this.findById(id);
+    },
+
+    async submitBulk(filename: string): Promise<void> {
+        await pool.query(
+            `CALL eorder.sp_SubmitOrderDraft(?)`,
+            [filename]
+        );
     },
 
     async cancel(id: number, notes?: string, modifiedBy?: string): Promise<OrderDetail | null> {
