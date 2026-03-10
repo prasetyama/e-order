@@ -13,6 +13,9 @@ BEGIN
     DECLARE v_now           VARCHAR(50);
     DECLARE v_first_id      INT;
     DECLARE v_row_num       INT DEFAULT 0;
+    DECLARE v_this_week     INT;
+    DECLARE v_first_week_no INT;
+    DECLARE v_monthname     VARCHAR(25);
 
     -- 1. Generate FileName pattern: dist_id + period date (YYYYMMDD) + principal short code
     SET v_now      = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s');
@@ -26,11 +29,17 @@ BEGIN
     SELECT COALESCE(MAX(Id), 0) INTO v_max_id FROM eorder.eorder_draforderdistributor;
     SET v_first_id = v_max_id + 1;
 
-    -- 3. Insert one row per product for the given principal (OrderQty = 0, ItemPrice = 0)
+    -- 3. Get WeekNo
+    SELECT WeekNo into v_first_week_no from eorder.KALENDAR Where FromDate <= p_po_date AND ToDate >= p_po_date;
+
+    -- 4 Get This Week
+    SELECT count(*) into v_this_week from eorder.KALENDAR where PeriodeLabel = (SELECT monthname(p_po_date));
+
+    -- 5. Insert one row per product for the given principal (OrderQty = 0, ItemPrice = 0)
     INSERT INTO eorder.eorder_draforderdistributor
         (Id, DistId, OrderDate, Principal, PeriodeOrder, OrderType,
-         Sku, ProductName, Crt2Plt, OrderQty, UOM, ItemPrice,
-         StockOnHand, FileName, RddDate, AutoSplit, UseFormula, Flag,  CreateBy, CreateDate)
+         Sku, ProductName, Crt2Plt, OrderQty, This_week, FirstWeek, UOM, ItemPrice,
+         StockOnHand, FileName, RddDate, AutoSplit, UseFormula, Flag, CreateBy, CreateDate)
     SELECT
         v_max_id + (@row_num := @row_num + 1),
         p_dist_id,
@@ -42,6 +51,8 @@ BEGIN
         p.Material_Description,
         p.CRT2PLT,
         0,                    -- OrderQty = 0
+        v_this_week,
+        v_first_week_no,
         p.BASEUOM,
         0.0000,               -- ItemPrice = 0
         0,
@@ -57,6 +68,6 @@ BEGIN
     WHERE p.PRINCIPAL = p_principal
     ORDER BY p.Material_Code;
 
-    -- 4. Return the id of the first inserted row so the API can redirect
+    -- 6. Return the id of the first inserted row so the API can redirect
     SELECT v_first_id AS first_id, v_filename AS filename;
 END
