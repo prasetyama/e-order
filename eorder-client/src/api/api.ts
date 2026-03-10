@@ -12,8 +12,8 @@ export const distributorApi = {
 };
 
 export const productsApi = {
-    getAll: async () => {
-        const response = await api.get('/products');
+    getAll: async (param?: { principal: string }) => {
+        const response = await api.get('/products', { params: param });
         return response.data.data;
     },
 };

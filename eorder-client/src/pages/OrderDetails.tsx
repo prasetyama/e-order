@@ -29,7 +29,7 @@ const OrderDetails = () => {
 
     const { data: products } = useQuery<Product[]>({
         queryKey: ['products'],
-        queryFn: () => productsApi.getAll()
+        queryFn: () => productsApi.getAll({ principal: order?.principle || '' }),
     });
 
     const order_type_map: Record<number, string> = {
