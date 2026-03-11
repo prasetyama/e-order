@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { authApi } from '../api/api';
 
-const SSO_URL = 'https://sso.ceresnl.com?idp=eorder&callback=http://172.16.60.50:5173';
+const SSO_URL = 'https://sso.ceresnl.com?idp=eorder&callback=http://172.17.253.122:5173';
 const SSO_COOKIE_NAME = 'SSO_TOKEN';
 
 function getCookie(name: string): string | null {
@@ -35,11 +35,10 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
                         const newUrl = window.location.pathname + window.location.search.replace(/[?&]token=[^&]+/, '').replace(/^&/, '?');
                         window.history.replaceState({}, '', newUrl);
                     } else {
-                        window.location.href = SSO_URL;
+                        alert(JSON.stringify(response));
                     }
                 } catch (error) {
                     console.error('Token validation failed:', error);
-                    window.location.href = SSO_URL;
                 }
             } else if (cookie) {
                 setIsAuthenticated(true);
