@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { authApi } from '../api/api';
 
-const SSO_URL = 'https://sso.ceresnl.com?idp=eorder&callback=http://172.17.253.122:5173';
+const SSO_URL = 'http://172.17.253.17:3000?idp=eorder&callback=http://172.17.253.122:5173';
 const SSO_COOKIE_NAME = 'SSO_TOKEN';
 
 function getCookie(name: string): string | null {

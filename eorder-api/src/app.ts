@@ -9,9 +9,31 @@ import { errorHandler } from './middleware/errorHandler';
 const app = express();
 
 // ─── Middleware ───────────────────────────────────────────────────────
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3002',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://172.17.253.122:5173',
+  'http://172.17.253.122:3002',
+  'http://172.17.253.17:3000'
+];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    console.log('Incoming request origin:', origin);
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://172.17.253')) {
+      return callback(null, true);
+    } else {
+      console.warn('Origin not allowed by CORS:', origin);
+      return callback(null, true); // Allow all for now but log warning to debug
+    }
+  },
   credentials: true,
+  optionsSuccessStatus: 200
 }));
 app.use(express.json());
 
