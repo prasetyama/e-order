@@ -22,33 +22,29 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
             const tokenParam = urlParams.get('token');
             const cookie = getCookie(SSO_COOKIE_NAME);
 
-            if (!cookie) {
+            if (tokenParam) {
+                try {
+                    // Validate token from URL param
+                    const response = await authApi.validateToken(tokenParam);
+                    if (response.success) {
+                        // Set cookie and set authenticated
+                        document.cookie = `${SSO_COOKIE_NAME}=${tokenParam}; path=/; max-age=86400`;
+                        setIsAuthenticated(true);
 
-                if (tokenParam) {
-                    try {
-                        // Validate token from URL param
-                        const response = await authApi.validateToken(tokenParam);
-                        if (response.success) {
-                            // Set cookie and set authenticated
-                            document.cookie = `${SSO_COOKIE_NAME}=${tokenParam}; path=/; max-age=86400`;
-                            setIsAuthenticated(true);
-
-                            // Clean up URL: remove token param without refreshing
-                            const newUrl = window.location.pathname + window.location.search.replace(/[?&]token=[^&]+/, '').replace(/^&/, '?');
-                            window.history.replaceState({}, '', newUrl);
-                        } else {
-                            window.location.href = SSO_URL;
-                        }
-                    } catch (error) {
-                        console.error('Token validation failed:', error);
+                        // Clean up URL: remove token param without refreshing
+                        const newUrl = window.location.pathname + window.location.search.replace(/[?&]token=[^&]+/, '').replace(/^&/, '?');
+                        window.history.replaceState({}, '', newUrl);
+                    } else {
                         window.location.href = SSO_URL;
                     }
-                } else {
+                } catch (error) {
+                    console.error('Token validation failed:', error);
                     window.location.href = SSO_URL;
-                    return;
                 }
-            } else {
+            } else if (cookie) {
                 setIsAuthenticated(true);
+            } else {
+                window.location.href = SSO_URL;
             }
         };
 
