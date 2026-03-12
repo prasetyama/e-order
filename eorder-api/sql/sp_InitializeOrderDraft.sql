@@ -16,24 +16,32 @@ BEGIN
     DECLARE v_this_week     INT;
     DECLARE v_first_week_no INT;
     DECLARE v_monthname     VARCHAR(25);
+    DECLARE v_order_type_code VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
-    -- 1. Generate FileName pattern: dist_id + period date (YYYYMMDD) + principal short code
+    -- 1. Get current max Id
+    SELECT COALESCE(MAX(Id), 0) INTO v_max_id FROM eorder.eorder_draforderdistributor;
+    SET v_first_id = v_max_id + 1;
+
+    -- 2. Get WeekNo
+    SELECT WeekNo into v_first_week_no from eorder.KALENDAR Where FromDate <= p_po_date AND ToDate >= p_po_date;
+
+    -- 3 Get This Week
+    SELECT count(*) into v_this_week from eorder.KALENDAR where PeriodeLabel = (SELECT monthname(p_po_date));
+
+    -- 4. Generate FileName pattern: dist_id + period date (YYYYMMDD) + principal short code
+    SET v_order_type_code = CASE p_order_type
+        WHEN '3' THEN 'U110'
+        WHEN '1' THEN CONCAT('F', v_first_week_no)
+        WHEN '2' THEN CONCAT('A', v_first_week_no)
+        ELSE p_order_type
+    END;
     SET v_now      = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s');
     SET v_filename = CONCAT(
         TRIM(p_dist_id),
         DATE_FORMAT(NOW(), '%Y%m%d'),
-        REPLACE(TRIM(p_principal), 'A00', '')
+        p_principal,
+        v_order_type_code
     );
-
-    -- 2. Get current max Id
-    SELECT COALESCE(MAX(Id), 0) INTO v_max_id FROM eorder.eorder_draforderdistributor;
-    SET v_first_id = v_max_id + 1;
-
-    -- 3. Get WeekNo
-    SELECT WeekNo into v_first_week_no from eorder.KALENDAR Where FromDate <= p_po_date AND ToDate >= p_po_date;
-
-    -- 4 Get This Week
-    SELECT count(*) into v_this_week from eorder.KALENDAR where PeriodeLabel = (SELECT monthname(p_po_date));
 
     -- 5. Insert one row per product for the given principal (OrderQty = 0, ItemPrice = 0)
     INSERT INTO eorder.eorder_draforderdistributor
