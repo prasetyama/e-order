@@ -7,7 +7,7 @@ import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp, Loader2 } from 'luc
 import { clsx } from 'clsx';
 import type { Product } from '../types';
 
-const OrderDetails = () => {
+const OrderEdit = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -205,7 +205,7 @@ const OrderDetails = () => {
                             <tr>
                                 <th className="px-4 py-2 text-left text-[10px] font-bold text-white uppercase tracking-widest w-12 text-center">No.</th>
                                 <th className="px-4 py-2 text-left text-[10px] font-bold text-white uppercase tracking-widest w-32">SKU</th>
-                                <th className="px-4 py-2 text-left text-[10px] font-bold text-white uppercase tracking-widest">Material Description</th>
+                                <th className="px-4 py-2 text-left text-[10px] font-bold text-white uppercase tracking-widest">Product Name</th>
                                 <th className="px-4 py-2 text-center text-[10px] font-bold text-white uppercase tracking-widest w-32">Order Qty</th>
                                 <th className="px-4 py-2 text-center text-[10px] font-bold text-white uppercase tracking-widest w-24">UOM</th>
                                 <th className="px-4 py-2 text-right text-[10px] font-bold text-white uppercase tracking-widest w-32">Price / UOM</th>
@@ -249,4 +249,4 @@ const OrderDetails = () => {
     );
 };
 
-export default OrderDetails;
+export default OrderEdit;

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { orderApi } from '../api/api';
 import { Button } from '../components/ui/UI';
-import { Eye, Search, Filter } from 'lucide-react';
+import { Search, Filter, Edit, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { clsx } from 'clsx';
 
@@ -144,7 +144,11 @@ const OrderDashboard = () => {
                                             <Link to={`/order/${order.id}`}>
                                                 <Button variant="ghost" size="sm" className="hover:bg-[#A51C24]/10 hover:text-[#A51C24]">
                                                     <Eye size={16} className="mr-2" />
-                                                    View
+                                                </Button>
+                                            </Link>
+                                            <Link to={`/order/${order.id}/edit`}>
+                                                <Button variant="ghost" size="sm" className="hover:bg-[#A51C24]/10 hover:text-[#A51C24]">
+                                                    <Edit size={16} className="mr-2" />
                                                 </Button>
                                             </Link>
                                         </td>
