@@ -113,7 +113,7 @@ const CreateOrder = () => {
             ...formData,
             periode: finalPeriode,
             dist_id: parseInt(formData.dist_id),
-            dlv_date: formData.po_date, // Sync dlv_date with po_date as requested
+            dlv_date: formData.periode,
         });
     };
 

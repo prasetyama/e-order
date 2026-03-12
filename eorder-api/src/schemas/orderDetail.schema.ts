@@ -29,7 +29,7 @@ export const updateOrderDetailSchema = z.object({
     stock_on_hand: z.number().int().optional(),
     filename: z.string().optional(),
     order_type: z.string().max(45).optional(),
-    periode: z.string().max(45),
+    periode: z.string().max(45).optional(),
     modified_by: z.string().max(45).optional(),
 });
 
