@@ -36,7 +36,7 @@ const CreateOrder = () => {
         const today = new Date();
         const year = today.getFullYear();
         const month = today.getMonth();
-        const weeks: { start: string; end: string; label: string }[] = [];
+        const weeks: { start: string; end: string; value: string; label: string }[] = [];
 
         // Calculate next Monday
         const nextMonday = new Date(today);
@@ -48,32 +48,41 @@ const CreateOrder = () => {
         let weekNum = 1;
 
         while (current.getMonth() === month) {
-            const startDay = current.getDate();
-            const startDate = new Date(year, month, startDay);
+            const startDate = new Date(year, month, current.getDate());
 
             // Calculate Saturday of this week
-            let endDay = startDay + (6 - current.getDay());
+            let endDay = current.getDate() + (6 - current.getDay());
             if (endDay > lastDay) {
                 endDay = lastDay;
             }
 
             const endDate = new Date(year, month, endDay);
-            const startStr = startDate.toISOString().split('T')[0];
-            const endStr = endDate.toISOString().split('T')[0];
+
+            // Shift range by 1 day (e.g., Sun-Sat to Mon-Sun)
+            const shiftedStart = new Date(startDate);
+            const startWeek = new Date(startDate)
+            const endWeek = new Date(endDate)
+            shiftedStart.setDate(startDate.getDate() + 1);
+            const shiftedEnd = new Date(endDate);
+            shiftedEnd.setDate(endDate.getDate() + 1);
+
+            const startStr = shiftedStart.toISOString().split('T')[0];
+            const endStr = shiftedEnd.toISOString().split('T')[0];
             const monthName = today.toLocaleString('default', { month: 'short' });
 
             // Only add if it ends on or after next Monday
-            if (endDate >= nextMonday) {
+            if (shiftedEnd >= nextMonday) {
                 weeks.push({
                     start: startStr,
                     end: endStr,
-                    label: `Week ${weekNum} (${monthName} ${startDay} - ${endDay})`
+                    value: `${startStr} - ${endStr}`,
+                    label: `Week ${weekNum} (${monthName} ${startWeek.getDate()} - ${endWeek.getDate()})`
                 });
             }
 
             if (endDay >= lastDay) break;
 
-            // Next Sunday
+            // Next Sunday (original logic to advance the loop)
             current = new Date(year, month, endDay + 1);
             weekNum++;
         }
@@ -198,7 +207,7 @@ const CreateOrder = () => {
                                             onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
                                         >
                                             {weeksInMonth.map(week => (
-                                                <option key={week.start} value={week.start}>{week.label}</option>
+                                                <option key={week.value} value={week.value}>{week.label}</option>
                                             ))}
                                         </select>
                                     ) : (
