@@ -38,13 +38,18 @@ const CreateOrder = () => {
         const month = today.getMonth();
         const weeks: { start: string; end: string; label: string }[] = [];
 
+        // Calculate next Monday
+        const nextMonday = new Date(today);
+        nextMonday.setDate(today.getDate() + (7 - today.getDay() + 1) % 7 || 7);
+        nextMonday.setHours(0, 0, 0, 0);
+
         let current = new Date(year, month, 1);
         const lastDay = new Date(year, month + 1, 0).getDate();
         let weekNum = 1;
 
         while (current.getMonth() === month) {
-            const startStr = current.toISOString().split('T')[0];
             const startDay = current.getDate();
+            const startDate = new Date(year, month, startDay);
 
             // Calculate Saturday of this week
             let endDay = startDay + (6 - current.getDay());
@@ -53,14 +58,18 @@ const CreateOrder = () => {
             }
 
             const endDate = new Date(year, month, endDay);
+            const startStr = startDate.toISOString().split('T')[0];
             const endStr = endDate.toISOString().split('T')[0];
             const monthName = today.toLocaleString('default', { month: 'short' });
 
-            weeks.push({
-                start: startStr,
-                end: endStr,
-                label: `Week ${weekNum} (${monthName} ${startDay} - ${endDay})`
-            });
+            // Only add if it ends on or after next Monday
+            if (endDate >= nextMonday) {
+                weeks.push({
+                    start: startStr,
+                    end: endStr,
+                    label: `Week ${weekNum} (${monthName} ${startDay} - ${endDay})`
+                });
+            }
 
             if (endDay >= lastDay) break;
 
@@ -88,11 +97,8 @@ const CreateOrder = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Ensure periode is YYYY-MM-DD even if picked as YYYY-MM
-        let finalPeriode = formData.periode;
-        if (formData.order_type === '1' && finalPeriode.length === 7) {
-            finalPeriode = `${finalPeriode}-01`;
-        }
+        // Format periode to YYYYMM as requested
+        const finalPeriode = formData.periode.split('-').slice(0, 2).join('');
 
         createMutation.mutate({
             ...formData,
