@@ -223,7 +223,7 @@ const CreateOrder = () => {
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-neutral-100">
+                            {/* <div className="pt-4 border-t border-neutral-100">
                                 <h3 className="text-sm font-bold text-green-600 underline italic mb-4">Order Preferences</h3>
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-4">
@@ -255,7 +255,7 @@ const CreateOrder = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
 
                         <div className="pt-6 border-t border-neutral-100 flex justify-end gap-3">

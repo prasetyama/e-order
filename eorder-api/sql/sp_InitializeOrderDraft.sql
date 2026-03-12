@@ -28,7 +28,7 @@ BEGIN
     -- 3 Get This Week
     SELECT count(*) into v_this_week from eorder.KALENDAR where PeriodeLabel = (SELECT monthname(p_po_date));
 
-    -- 4. Generate FileName pattern: dist_id + period date (YYYYMMDD) + principal short code
+    -- 4. Generate FileName pattern prefix: dist_id + date (YYYYMMDD) + principal + order_type_code
     SET v_order_type_code = CASE p_order_type
         WHEN '3' THEN 'U110'
         WHEN '1' THEN CONCAT('F', v_first_week_no)
@@ -42,6 +42,13 @@ BEGIN
         p_principal,
         v_order_type_code
     );
+
+    -- Check for existing filenames with this prefix and add sequence
+    SELECT COUNT(DISTINCT FileName) INTO v_row_num 
+    FROM eorder.eorder_draforderdistributor 
+    WHERE FileName LIKE CONCAT(v_filename, '%');
+
+    SET v_filename = CONCAT(v_filename, '-', LPAD(v_row_num + 1, 2, '0'));
 
     -- 5. Insert one row per product for the given principal (OrderQty = 0, ItemPrice = 0)
     INSERT INTO eorder.eorder_draforderdistributor
