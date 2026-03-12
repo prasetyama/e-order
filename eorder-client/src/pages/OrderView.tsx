@@ -70,7 +70,7 @@ const OrderView = () => {
                     </span>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                {/* <div className="flex items-center space-x-2">
                     <Button variant="outline" size="sm" className="h-9">
                         <Printer size={14} className="mr-2" />
                         Print
@@ -83,7 +83,7 @@ const OrderView = () => {
                         <Share2 size={14} className="mr-2" />
                         Share
                     </Button>
-                </div>
+                </div> */}
             </div>
 
             {/* Info Bar */}

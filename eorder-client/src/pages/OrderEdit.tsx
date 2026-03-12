@@ -146,14 +146,14 @@ const OrderEdit = () => {
                         <RefreshCw size={14} className="mr-2" />
                         Refresh
                     </Button>
-                    <Button variant="outline" size="sm" className="h-9">
+                    {/* <Button variant="outline" size="sm" className="h-9">
                         <FileDown size={14} className="mr-2" />
                         Download
                     </Button>
                     <Button variant="outline" size="sm" className="h-9">
                         <FileUp size={14} className="mr-2" />
                         Upload
-                    </Button>
+                    </Button> */}
                     <div className="h-6 w-px bg-neutral-200 mx-1" />
                     <Button
                         variant="outline"
