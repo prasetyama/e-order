@@ -31,13 +31,15 @@ BEGIN
     -- 3. Get DistShort from distributor table
     SELECT DistShort INTO v_dist_short
     FROM eorder.eorder_eorder_distributor
-    WHERE DistID = v_dist_id
+    WHERE CAST(DistID AS UNSIGNED) = CAST(v_dist_id AS UNSIGNED)
     LIMIT 1;
 
     -- 4. Map OrderType to code
     --    U110 = Urgent Order
     SET v_order_type_code = CASE v_order_type
         WHEN '3' THEN 'U110'
+        WHEN '1' THEN 'F110'
+        WHEN '2' THEN 'A110'
         ELSE v_order_type
     END;
 
