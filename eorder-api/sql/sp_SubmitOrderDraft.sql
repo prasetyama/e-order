@@ -9,7 +9,7 @@ BEGIN
     DECLARE v_periode_code VARCHAR(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
     DECLARE v_principal VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
     DECLARE v_order_type VARCHAR(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-    DECLARE v_periode_order DATE;
+    DECLARE v_periode_order VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
     DECLARE v_dist_id VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
     -- 1. Get draft record values for building the new filename
@@ -31,25 +31,27 @@ BEGIN
     -- 3. Get DistShort from distributor table
     SELECT DistShort INTO v_dist_short
     FROM eorder.eorder_eorder_distributor
-    WHERE DistID = v_dist_id
+    WHERE CAST(DistID AS UNSIGNED) = CAST(v_dist_id AS UNSIGNED)
     LIMIT 1;
 
     -- 4. Map OrderType to code
     --    U110 = Urgent Order
     SET v_order_type_code = CASE v_order_type
         WHEN '3' THEN 'U110'
+        WHEN '1' THEN 'F110'
+        WHEN '2' THEN 'A110'
         ELSE v_order_type
     END;
 
     -- 5. Format PeriodeOrder as YYYYMM
-    SET v_periode_code = DATE_FORMAT(v_periode_order, '%Y%m');
+    -- SET v_periode_code = DATE_FORMAT(v_periode_order, '%Y%m');
 
     -- 6. Build new filename: PrincipalCode/DistShort/OrderTypeCode/YYYYMM
     SET v_new_filename = CONCAT(
         v_principal_code, '/',
         IFNULL(v_dist_short, ''), '/',
         v_order_type_code, '/',
-        v_periode_code
+        v_periode_order
     );
 
     -- 7. Move data to final table with the new filename
@@ -60,7 +62,7 @@ BEGIN
         release_flag
     )
     SELECT 
-        DistId, v_new_filename, OrderDate, OrderDate, Principal, 
+        DistId, v_new_filename, RddDate, RddDate, Principal, 
         Sku, OrderQty, UOM, StockOnHand, p_filename, 
         OrderType, PeriodeOrder, CreateBy, CreateDate,
         0

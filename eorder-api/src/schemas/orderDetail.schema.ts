@@ -13,7 +13,7 @@ export const createOrderDetailSchema = z.object({
     stock_on_hand: z.number().int().optional().default(0),
     filename: z.string().optional(),
     order_type: z.string().max(45).optional(),
-    periode: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format: YYYY-MM-DD').optional(),
+    periode: z.string().max(45),
     created_by: z.string().max(45).optional(),
 });
 
@@ -29,7 +29,7 @@ export const updateOrderDetailSchema = z.object({
     stock_on_hand: z.number().int().optional(),
     filename: z.string().optional(),
     order_type: z.string().max(45).optional(),
-    periode: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format: YYYY-MM-DD').optional(),
+    periode: z.string().max(45).optional(),
     modified_by: z.string().max(45).optional(),
 });
 
@@ -47,7 +47,7 @@ export const initializeOrderDetailSchema = z.object({
     dist_id: z.number().int(),
     principle: z.string().max(6),
     order_type: z.string().max(20).optional(),
-    periode: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format: YYYY-MM-DD').nullable().optional(),
+    periode: z.string().max(45),
     po_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format: YYYY-MM-DD'),
     dlv_date: z.string().nullable().optional(),
     created_by: z.string().max(45).nullable().optional(),

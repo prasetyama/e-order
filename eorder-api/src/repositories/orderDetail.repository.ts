@@ -27,6 +27,7 @@ const SELECT_QUERY = `
         UOM as uom,
         StockOnHand as stock_on_hand,
         FileName as filename,
+        ProductName as product_name,
         NULL as error_flag,
         NULL as error_notes,
         Flag as release_flag,

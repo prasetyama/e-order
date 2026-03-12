@@ -1,14 +1,24 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { orderApi } from '../api/api';
 import { Button } from '../components/ui/UI';
-import { Eye, Search, Filter } from 'lucide-react';
+import { Search, Filter, Edit, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { clsx } from 'clsx';
 
 const OrderDashboard = () => {
+    const [status, setStatus] = useState('All Status');
+    const [periode, setPeriode] = useState('');
+    const [search, setSearch] = useState('');
+
     const { data: orders, isLoading } = useQuery({
-        queryKey: ['orders'],
-        queryFn: () => orderApi.getAll({ grouped: true } as any),
+        queryKey: ['orders', { status, periode, search }],
+        queryFn: () => orderApi.getAll({
+            grouped: true,
+            status: status === 'All Status' ? undefined : status.toUpperCase(),
+            periode: periode || undefined,
+            filename: search || undefined,
+        } as any),
     });
 
     const order_type_map: Record<number, string> = {
@@ -38,7 +48,11 @@ const OrderDashboard = () => {
                 <div className="flex gap-4 items-end bg-white p-4 rounded-lg border border-neutral-200">
                     <div className="w-48">
                         <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Status</label>
-                        <select className="w-full h-9 rounded border-neutral-200 text-sm focus:ring-[#A51C24] transition-shadow">
+                        <select
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                            className="w-full h-9 rounded border-neutral-200 text-sm focus:ring-[#A51C24] transition-shadow"
+                        >
                             <option>All Status</option>
                             <option>Draft</option>
                             <option>Submitted</option>
@@ -46,15 +60,35 @@ const OrderDashboard = () => {
                     </div>
                     <div className="w-48">
                         <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Period</label>
-                        <input type="month" className="w-full h-9 rounded border-neutral-200 text-sm focus:ring-[#A51C24]" />
+                        <input
+                            type="month"
+                            value={periode}
+                            onChange={(e) => setPeriode(e.target.value)}
+                            className="w-full h-9 rounded border-neutral-200 text-sm focus:ring-[#A51C24]"
+                        />
                     </div>
                     <div className="flex-1 px-4 relative">
                         <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
-                        <input type="text" placeholder="Search Order Id..." className="w-full h-9 pl-10 rounded border-neutral-200 text-sm focus:ring-[#A51C24]" />
+                        <input
+                            type="text"
+                            placeholder="Search Order Id..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full h-9 pl-10 rounded border-neutral-200 text-sm focus:ring-[#A51C24]"
+                        />
                     </div>
-                    <Button variant="outline" size="sm" className="h-9">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9"
+                        onClick={() => {
+                            setStatus('All Status');
+                            setPeriode('');
+                            setSearch('');
+                        }}
+                    >
                         <Filter size={16} className="mr-2" />
-                        Filter
+                        Clear
                     </Button>
                 </div>
             </div>
@@ -92,7 +126,7 @@ const OrderDashboard = () => {
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order_type_map[parseInt(order.order_type)] || 'N/A'}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-center text-neutral-600">{order.total_sku || 0}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-center text-[#A51C24]">{order.total_qty || 0}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order.periode ? new Date(order.periode).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : 'N/A'}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order.periode}</td>
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <span className={clsx(
                                                 "px-2 inline-flex text-[10px] leading-5 font-bold rounded-full uppercase tracking-wider",
@@ -110,7 +144,11 @@ const OrderDashboard = () => {
                                             <Link to={`/order/${order.id}`}>
                                                 <Button variant="ghost" size="sm" className="hover:bg-[#A51C24]/10 hover:text-[#A51C24]">
                                                     <Eye size={16} className="mr-2" />
-                                                    View
+                                                </Button>
+                                            </Link>
+                                            <Link to={`/order/${order.id}/edit`}>
+                                                <Button variant="ghost" size="sm" className="hover:bg-[#A51C24]/10 hover:text-[#A51C24]">
+                                                    <Edit size={16} className="mr-2" />
                                                 </Button>
                                             </Link>
                                         </td>

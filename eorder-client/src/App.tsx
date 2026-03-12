@@ -3,7 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/Layout/Layout';
 import OrderDashboard from './pages/OrderDashboard';
 import CreateOrder from './pages/CreateOrder';
-import OrderDetails from './pages/OrderDetails';
+import OrderEdit from './pages/OrderEdit';
+import OrderView from './pages/OrderView';
 
 const queryClient = new QueryClient();
 
@@ -15,7 +16,8 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<OrderDashboard />} />
             <Route path="create" element={<CreateOrder />} />
-            <Route path="order/:id" element={<OrderDetails />} />
+            <Route path="order/:id" element={<OrderView />} />
+            <Route path="order/:id/edit" element={<OrderEdit />} />
           </Route>
         </Routes>
       </Router>

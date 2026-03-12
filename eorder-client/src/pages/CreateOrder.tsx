@@ -2,23 +2,93 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { distributorApi, orderApi } from '../api/api';
-import { Card, Button, Input } from '../components/ui/UI';
+import { Card, Button } from '../components/ui/UI';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import type { Distributor } from '../types';
 
 const CreateOrder = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const getMinMonth = () => {
+        const d = new Date();
+        d.setMonth(d.getMonth() + 1);
+        return d.toISOString().slice(0, 7); // YYYY-MM
+    };
+
+    const getTomorrow = () => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().split('T')[0];
+    };
+
     const [formData, setFormData] = useState({
         dist_id: '',
         principle: 'A00703', // PT PERUSAHAAN INDUSTRI CERES
         order_type: '3', // Urgent Order
-        periode: new Date().toISOString().split('T')[0],
+        periode: getTomorrow(),
         po_date: new Date().toISOString().split('T')[0],
-        dlv_date: '',
+        dlv_date: new Date().toISOString().split('T')[0],
         formula: true,
         auto_slip: true,
     });
+
+    const weeksInMonth = (function () {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        const weeks: { start: string; end: string; value: string; label: string }[] = [];
+
+        // Calculate next Monday
+        const nextMonday = new Date(today);
+        nextMonday.setDate(today.getDate() + (7 - today.getDay() + 1) % 7 || 7);
+        nextMonday.setHours(0, 0, 0, 0);
+
+        let current = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        let weekNum = 1;
+
+        while (current.getMonth() === month) {
+            const startDate = new Date(year, month, current.getDate());
+
+            // Calculate Saturday of this week
+            let endDay = current.getDate() + (6 - current.getDay());
+            if (endDay > lastDay) {
+                endDay = lastDay;
+            }
+
+            const endDate = new Date(year, month, endDay);
+
+            // Shift range by 1 day (e.g., Sun-Sat to Mon-Sun)
+            const shiftedStart = new Date(startDate);
+            const startWeek = new Date(startDate)
+            const endWeek = new Date(endDate)
+            shiftedStart.setDate(startDate.getDate() + 1);
+            const shiftedEnd = new Date(endDate);
+            shiftedEnd.setDate(endDate.getDate() + 1);
+
+            const startStr = shiftedStart.toISOString().split('T')[0];
+            const endStr = shiftedEnd.toISOString().split('T')[0];
+            const monthName = today.toLocaleString('default', { month: 'short' });
+
+            // Only add if it ends on or after next Monday
+            if (shiftedEnd >= nextMonday) {
+                weeks.push({
+                    start: startStr,
+                    end: endStr,
+                    value: `${startStr} - ${endStr}`,
+                    label: `Week ${weekNum} (${monthName} ${startWeek.getDate()} - ${endWeek.getDate()})`
+                });
+            }
+
+            if (endDay >= lastDay) break;
+
+            // Next Sunday (original logic to advance the loop)
+            current = new Date(year, month, endDay + 1);
+            weekNum++;
+        }
+
+        return weeks;
+    })();
 
     const { data: distributors } = useQuery<Distributor[]>({
         queryKey: ['distributors'],
@@ -35,9 +105,33 @@ const CreateOrder = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Format periode to YYYYMM as requested
+        const finalPeriode = formData.periode.split('-').slice(0, 2).join('');
+
         createMutation.mutate({
             ...formData,
+            periode: finalPeriode,
             dist_id: parseInt(formData.dist_id),
+            dlv_date: formData.periode,
+        });
+    };
+
+    const handleOrderTypeChange = (type: string) => {
+        let newPeriode = new Date().toISOString().split('T')[0];
+
+        if (type === '1') { // Fix Order
+            newPeriode = getMinMonth();
+        } else if (type === '2') { // Additional Order
+            newPeriode = weeksInMonth[0].start;
+        } else if (type === '3') { // Urgent Order
+            newPeriode = getTomorrow();
+        }
+
+        setFormData({
+            ...formData,
+            order_type: type,
+            periode: newPeriode
         });
     };
 
@@ -93,20 +187,40 @@ const CreateOrder = () => {
                                     <select
                                         className="w-full h-10 rounded border-neutral-300 text-sm focus:ring-[#A51C24] transition-shadow bg-white"
                                         value={formData.order_type}
-                                        onChange={(e) => setFormData({ ...formData, order_type: e.target.value })}
+                                        onChange={(e) => handleOrderTypeChange(e.target.value)}
                                     >
-                                        <option value={3}>Urgent Order</option>
+                                        <option value="1">Fix Order</option>
+                                        <option value="2">Additional Order</option>
+                                        <option value="3">Urgent Order</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <Input
-                                    label="Choose Period"
-                                    type="date"
-                                    value={formData.periode}
-                                    onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
-                                />
+                                <div>
+                                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Choose Period</label>
+                                    {formData.order_type === '2' ? (
+                                        <select
+                                            required
+                                            className="w-full h-10 px-3 rounded border-neutral-300 text-sm focus:ring-[#A51C24] focus:border-[#A51C24] transition-shadow bg-white"
+                                            value={formData.periode}
+                                            onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
+                                        >
+                                            {weeksInMonth.map(week => (
+                                                <option key={week.value} value={week.value}>{week.label}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            required
+                                            type={formData.order_type === '1' ? 'month' : 'date'}
+                                            min={formData.order_type === '1' ? getMinMonth() : (formData.order_type === '3' ? getTomorrow() : undefined)}
+                                            className="w-full h-10 px-3 rounded border-neutral-300 text-sm focus:ring-[#A51C24] focus:border-[#A51C24] transition-shadow bg-white"
+                                            value={formData.periode}
+                                            onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
+                                        />
+                                    )}
+                                </div>
                             </div>
 
                             <div className="pt-4 border-t border-neutral-100">
