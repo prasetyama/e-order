@@ -269,4 +269,15 @@ export const orderDetailRepository = {
 
         return null;
     },
+
+    async getWeeks(): Promise<any[]> {
+        const [rows] = await pool.query<RowDataPacket[]>(
+            `SELECT WeekNo, FromDate, ToDate, PeriodeLabel, Periode 
+             FROM eorder.KALENDAR 
+             WHERE Periode = DATE_FORMAT(NOW(), '%Y%m')
+               AND FromDate >= DATE_ADD(CURDATE(), INTERVAL 7 - WEEKDAY(CURDATE()) DAY)
+             ORDER BY WeekNo ASC`
+        );
+        return rows;
+    },
 };

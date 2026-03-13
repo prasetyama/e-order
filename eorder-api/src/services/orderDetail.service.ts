@@ -83,4 +83,8 @@ export const orderDetailService = {
         const validated = cancelOrderDetailSchema.parse(data);
         return orderDetailRepository.cancel(id, validated.cancel_notes, validated.modified_by);
     },
+
+    async getWeeks() {
+        return orderDetailRepository.getWeeks();
+    },
 };

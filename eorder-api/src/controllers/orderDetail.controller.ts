@@ -106,4 +106,13 @@ export const orderDetailController = {
             next(err);
         }
     },
+
+    getWeeks: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const weeks = await orderDetailService.getWeeks();
+            res.json({ success: true, data: weeks });
+        } catch (err) {
+            next(err);
+        }
+    },
 };

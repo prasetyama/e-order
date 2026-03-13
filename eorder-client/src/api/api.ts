@@ -53,4 +53,8 @@ export const orderApi = {
         const response = await api.post('/order-details/submit', { filename });
         return response.data.data;
     },
+    getWeeks: async () => {
+        const response = await api.get('/order-details/weeks');
+        return response.data.data;
+    },
 };

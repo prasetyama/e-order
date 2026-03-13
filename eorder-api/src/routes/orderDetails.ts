@@ -4,6 +4,7 @@ import { orderDetailController } from '../controllers/orderDetail.controller';
 const router = Router();
 
 router.get('/', orderDetailController.getAll);
+router.get('/weeks', orderDetailController.getWeeks);
 router.get('/:id', orderDetailController.getById);
 router.post('/initialize', orderDetailController.initialize);
 router.post('/submit', orderDetailController.submitBulk);
