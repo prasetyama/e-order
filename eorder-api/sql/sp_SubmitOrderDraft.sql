@@ -62,8 +62,8 @@ BEGIN
             d.OrderType, d.PeriodeOrder, d.CreateBy, d.CreateDate,
             0
         FROM eorder.eorder_draforderdistributor d
-        -- Join with KALENDAR on the period (RddDate for Type 1 is YYYYMM)
-        JOIN eorder.KALENDAR k ON CAST(d.RddDate AS UNSIGNED) = k.Periode
+        -- Join with KALENDAR on the period (RddDate for Type 1 might be YYYYMM or YYYY-MM)
+        JOIN eorder.KALENDAR k ON REPLACE(d.RddDate, '-', '') = k.Periode
         WHERE d.FileName = p_filename AND d.OrderQty > 0;
 
     -- TYPE 2: Additional Order - Range to WeekNo
