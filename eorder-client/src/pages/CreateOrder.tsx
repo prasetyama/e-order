@@ -112,6 +112,7 @@ const CreateOrder = () => {
         createMutation.mutate({
             ...formData,
             periode: finalPeriode,
+            dlv_date: formData.periode,
             dist_id: parseInt(formData.dist_id)
         });
     };
