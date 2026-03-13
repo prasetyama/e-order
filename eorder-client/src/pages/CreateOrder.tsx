@@ -27,7 +27,7 @@ const CreateOrder = () => {
         order_type: '3', // Urgent Order
         periode: getTomorrow(),
         po_date: new Date().toISOString().split('T')[0],
-        dlv_date: new Date().toISOString().split('T')[0],
+        dlv_date: '',
         formula: true,
         auto_slip: true,
     });
@@ -99,7 +99,7 @@ const CreateOrder = () => {
         mutationFn: orderApi.initialize,
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['orders'] });
-            navigate(`/order/${data.first_id}`);
+            navigate(`/order/${data.first_id}/edit`);
         },
     });
 
@@ -112,8 +112,7 @@ const CreateOrder = () => {
         createMutation.mutate({
             ...formData,
             periode: finalPeriode,
-            dist_id: parseInt(formData.dist_id),
-            dlv_date: formData.periode,
+            dist_id: parseInt(formData.dist_id)
         });
     };
 

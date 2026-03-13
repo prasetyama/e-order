@@ -16,23 +16,29 @@ BEGIN
     DECLARE v_this_week     INT;
     DECLARE v_first_week_no INT;
     DECLARE v_monthname     VARCHAR(25);
-    DECLARE v_order_type_code VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+    DECLARE v_order_type_code VARCHAR(20);
 
     -- 1. Get current max Id
     SELECT COALESCE(MAX(Id), 0) INTO v_max_id FROM eorder.eorder_draforderdistributor;
     SET v_first_id = v_max_id + 1;
 
-    -- 2. Get WeekNo
+    -- 2. Get WeekNo (KALENDAR uses utf8mb4_0900_ai_ci, matching default p_po_date)
     SELECT WeekNo into v_first_week_no from eorder.KALENDAR Where FromDate <= p_po_date AND ToDate >= p_po_date;
 
     -- 3 Get This Week
     SELECT count(*) into v_this_week from eorder.KALENDAR where PeriodeLabel = (SELECT monthname(p_po_date));
 
     -- 4. Generate FileName pattern prefix: dist_id + date (YYYYMMDD) + principal + order_type_code
+    -- Monthly running number (DistId in table uses utf8mb4_general_ci, so we use COLLATE)
+    SELECT COUNT(DISTINCT FileName) INTO v_row_num 
+    FROM eorder.eorder_draforderdistributor 
+    WHERE DistId = p_dist_id COLLATE utf8mb4_general_ci
+        AND CreateDate LIKE CONCAT(DATE_FORMAT(NOW(), '%Y-%m'), '%') COLLATE utf8mb4_general_ci;
+    
     SET v_order_type_code = CASE p_order_type
-        WHEN '3' THEN 'U110'
-        WHEN '1' THEN CONCAT('F', v_first_week_no)
-        WHEN '2' THEN CONCAT('A', v_first_week_no)
+        WHEN '3' THEN CONCAT('U', LPAD(v_row_num + 1, 2, '0'))
+        WHEN '1' THEN CONCAT('F', LPAD(v_row_num + 1, 2, '0'))
+        WHEN '2' THEN CONCAT('A', LPAD(v_row_num + 1, 2, '0'))
         ELSE p_order_type
     END;
     SET v_now      = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s');
@@ -46,9 +52,9 @@ BEGIN
     -- Check for existing filenames with this prefix and add sequence
     SELECT COUNT(DISTINCT FileName) INTO v_row_num 
     FROM eorder.eorder_draforderdistributor 
-    WHERE FileName LIKE CONCAT(v_filename, '%');
+    WHERE FileName LIKE CONCAT(v_filename, '%') COLLATE utf8mb4_general_ci;
 
-    SET v_filename = CONCAT(v_filename, '-', LPAD(v_row_num + 1, 2, '0'));
+    SET v_filename = CONCAT(v_filename, LPAD(v_row_num + 1, 2, '0'));
 
     -- 5. Insert one row per product for the given principal (OrderQty = 0, ItemPrice = 0)
     INSERT INTO eorder.eorder_draforderdistributor
