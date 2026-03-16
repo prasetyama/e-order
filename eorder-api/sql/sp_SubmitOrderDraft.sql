@@ -55,16 +55,37 @@ BEGIN
             release_flag
         )
         SELECT 
-            d.DistId,
-            CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/F', LPAD(k.WeekNo, 3, '00'), '/', v_periode_order) as ponumber,
-            k.ToDate, k.ToDate, d.Principal, 
-            d.Sku, d.OrderQty, d.UOM, d.StockOnHand, p_filename, 
-            d.OrderType, d.PeriodeOrder, d.CreateBy, d.CreateDate,
+            DistId, ponumber, podate, dlvdate, Principal, 
+            Sku, 
+            CASE 
+                WHEN OrderQty > 100 THEN
+                    FLOOR(OrderQty / NumWeeks) + 
+                    IF(
+                        CASE 
+                            WHEN WeekRank % 2 = 1 THEN (WeekRank + 1) / 2 
+                            ELSE CEIL(NumWeeks / 2) + (WeekRank / 2) 
+                        END <= (OrderQty % NumWeeks), 
+                        1, 0
+                    )
+                ELSE OrderQty
+            END as split_qty,
+            UOM, StockOnHand, Filename, 
+            OrderType, PeriodeOrder, CreateBy, CreateDate,
             0
-        FROM eorder.eorder_draforderdistributor d
-        -- Join with KALENDAR on the period (RddDate for Type 1 might be YYYYMM or YYYY-MM)
-        JOIN eorder.KALENDAR k ON REPLACE(d.RddDate, '-', '') = k.Periode
-        WHERE d.FileName = p_filename AND d.OrderQty > 0;
+        FROM (
+            SELECT 
+                d.DistId,
+                CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/F', LPAD(k.WeekNo, 3, '00'), '/', v_periode_order) as ponumber,
+                k.ToDate as podate, k.ToDate as dlvdate, d.Principal, 
+                d.Sku, d.OrderQty, d.UOM, d.StockOnHand, p_filename as Filename, 
+                d.OrderType, d.PeriodeOrder, d.CreateBy, d.CreateDate,
+                ROW_NUMBER() OVER(PARTITION BY d.Id ORDER BY k.WeekNo) as WeekRank,
+                COUNT(*) OVER(PARTITION BY d.Id) as NumWeeks
+            FROM eorder.eorder_draforderdistributor d
+            JOIN eorder.KALENDAR k ON REPLACE(d.RddDate, '-', '') = k.Periode
+            WHERE d.FileName = p_filename AND d.OrderQty > 0
+        ) t
+        WHERE (OrderQty > 100) OR (OrderQty <= 100 AND WeekRank = 1);
 
     -- TYPE 2: Additional Order - Range to WeekNo
     ELSEIF v_order_type = '2' THEN
