@@ -56,7 +56,7 @@ BEGIN
         )
         SELECT 
             d.DistId,
-            CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/F', LPAD(k.WeekNo, 2, '0'), '/', v_periode_order) as ponumber,
+            CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/F', LPAD(k.WeekNo, 3, '00'), '/', v_periode_order) as ponumber,
             k.ToDate, k.ToDate, d.Principal, 
             d.Sku, d.OrderQty, d.UOM, d.StockOnHand, p_filename, 
             d.OrderType, d.PeriodeOrder, d.CreateBy, d.CreateDate,
@@ -76,7 +76,7 @@ BEGIN
         )
         SELECT 
             d.DistId,
-            CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/A', LPAD(k.WeekNo, 2, '0'), '/', v_periode_order) as ponumber,
+            CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/A', LPAD(k.WeekNo, 3, '00'), '/', v_periode_order) as ponumber,
             -- Use the end of the range for delivery date
             STR_TO_DATE(SUBSTRING_INDEX(d.RddDate, ' - ', -1), '%Y-%m-%d'),
             STR_TO_DATE(SUBSTRING_INDEX(d.RddDate, ' - ', -1), '%Y-%m-%d'),
@@ -101,7 +101,7 @@ BEGIN
             d.DistId,
             CASE d.OrderType
                 WHEN '3' THEN 
-                    CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/U', LPAD(v_urgent_running_no + 1, 2, '0'), '/', v_periode_order)
+                    CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/U', LPAD(v_urgent_running_no + 1, 3, '00'), '/', v_periode_order)
                 ELSE 
                     CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/', d.OrderType, '/', v_periode_order)
             END as ponumber,

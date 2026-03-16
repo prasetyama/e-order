@@ -12,6 +12,7 @@ const OrderEdit = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [quantities, setQuantities] = useState<Record<string, number>>({});
+    const [savedQuantities, setSavedQuantities] = useState<Record<string, number>>({});
 
     // Fetch single order to get PO Number and metadata
     const { data: order, isLoading: isOrderLoading } = useQuery({
@@ -52,6 +53,7 @@ const OrderEdit = () => {
                 qtys[line.sku] = line.order_qty;
             });
             setQuantities(qtys);
+            setSavedQuantities(qtys);
         }
     }, [poLines]);
 
@@ -92,6 +94,7 @@ const OrderEdit = () => {
             return Promise.all(promises);
         },
         onSuccess: () => {
+            setSavedQuantities(quantities);
             queryClient.invalidateQueries({ queryKey: ['po-lines', order?.filename] });
             alert('Draft saved successfully!');
         },
@@ -106,9 +109,12 @@ const OrderEdit = () => {
     });
 
     const handleQtyChange = (sku: string, qty: string) => {
-        const val = parseInt(qty) || 0;
+        const val = parseInt(qty);
         setQuantities(prev => ({ ...prev, [sku]: val }));
     };
+
+    const isDirty = Object.keys(quantities).some(sku => quantities[sku] !== (savedQuantities[sku] || 0)) ||
+        Object.keys(savedQuantities).some(sku => savedQuantities[sku] !== (quantities[sku] || 0));
 
     const totalQty = Object.values(quantities).reduce((a, b) => a + b, 0);
 
@@ -169,7 +175,7 @@ const OrderEdit = () => {
                         size="sm"
                         className="h-9"
                         onClick={handleSubmit}
-                        disabled={order?.status !== 'DRAFT' || submitMutation.isPending}
+                        disabled={order?.status !== 'DRAFT' || submitMutation.isPending || isDirty}
                     >
                         {submitMutation.isPending ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Send size={14} className="mr-2" />}
                         Submit Order
@@ -221,7 +227,7 @@ const OrderEdit = () => {
                                         <input
                                             type="number"
                                             className="w-full h-8 text-center text-xs font-bold border-neutral-200 rounded focus:ring-[#A51C24]"
-                                            value={quantities[product.Material_Code] || 0}
+                                            value={quantities[product.Material_Code]}
                                             onChange={(e) => handleQtyChange(product.Material_Code, e.target.value)}
                                             disabled={order?.status !== 'DRAFT'}
                                         />

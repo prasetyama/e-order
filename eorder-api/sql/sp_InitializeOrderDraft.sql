@@ -49,13 +49,6 @@ BEGIN
         v_order_type_code
     );
 
-    -- Check for existing filenames with this prefix and add sequence
-    SELECT COUNT(DISTINCT FileName) INTO v_row_num 
-    FROM eorder.eorder_draforderdistributor 
-    WHERE FileName LIKE CONCAT(v_filename, '%') COLLATE utf8mb4_general_ci;
-
-    SET v_filename = CONCAT(v_filename, LPAD(v_row_num + 1, 2, '0'));
-
     -- 5. Insert one row per product for the given principal (OrderQty = 0, ItemPrice = 0)
     INSERT INTO eorder.eorder_draforderdistributor
         (Id, DistId, OrderDate, Principal, PeriodeOrder, OrderType,
