@@ -2,6 +2,8 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, LogOut } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useQuery } from '@tanstack/react-query';
+import { orderApi } from '../../api/api';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -9,6 +11,17 @@ function cn(...inputs: ClassValue[]) {
 
 const Layout = () => {
     const location = useLocation();
+
+    const { data: orders } = useQuery({
+        queryKey: ['orders-stats'],
+        queryFn: () => orderApi.getAll({ grouped: true } as any),
+        refetchInterval: 30000, // Refresh every 30 seconds
+    });
+
+    const stats = {
+        drafts: orders?.filter((o: any) => o.status === 'DRAFT').length || 0,
+        submitted: orders?.filter((o: any) => o.status === 'SUBMITTED').length || 0,
+    };
 
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -70,12 +83,12 @@ const Layout = () => {
                         <div className="px-4 text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-4">Quick Stats</div>
                         <div className="space-y-3 px-4">
                             <div className="flex justify-between items-center">
-                                <span className="text-xs text-neutral-500">Active Drafts</span>
-                                <span className="text-xs font-bold bg-[#A51C24]/10 text-[#A51C24] px-1.5 py-0.5 rounded">12</span>
+                                <span className="text-xs text-neutral-500">Drafts</span>
+                                <span className="text-xs font-bold bg-[#A51C24]/10 text-[#A51C24] px-1.5 py-0.5 rounded">{stats.drafts}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-xs text-neutral-500">Submitted Today</span>
-                                <span className="text-xs font-bold text-neutral-700 px-1.5 py-0.5">5</span>
+                                <span className="text-xs text-neutral-500">Submitted</span>
+                                <span className="text-xs font-bold text-neutral-700 px-1.5 py-0.5">{stats.submitted}</span>
                             </div>
                         </div>
                     </div>

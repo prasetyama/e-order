@@ -106,4 +106,27 @@ export const orderDetailController = {
             next(err);
         }
     },
+
+    getWeeks: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const weeks = await orderDetailService.getWeeks();
+            res.json({ success: true, data: weeks });
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    getInvoices: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { filename } = req.params;
+            if (!filename) {
+                res.status(400).json({ success: false, error: { message: 'Filename is required' } });
+                return;
+            }
+            const invoices = await orderDetailService.getInvoicesByFilename(filename);
+            res.json({ success: true, data: invoices });
+        } catch (err) {
+            next(err);
+        }
+    },
 };

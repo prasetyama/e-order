@@ -27,68 +27,29 @@ const CreateOrder = () => {
         order_type: '3', // Urgent Order
         periode: getTomorrow(),
         po_date: new Date().toISOString().split('T')[0],
-        dlv_date: new Date().toISOString().split('T')[0],
+        dlv_date: '',
         formula: true,
         auto_slip: true,
     });
 
-    const weeksInMonth = (function () {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = today.getMonth();
-        const weeks: { start: string; end: string; value: string; label: string }[] = [];
+    const { data: calendarWeeks } = useQuery<any[]>({
+        queryKey: ['calendarWeeks'],
+        queryFn: orderApi.getWeeks,
+    });
 
-        // Calculate next Monday
-        const nextMonday = new Date(today);
-        nextMonday.setDate(today.getDate() + (7 - today.getDay() + 1) % 7 || 7);
-        nextMonday.setHours(0, 0, 0, 0);
+    const weeksInMonth = (calendarWeeks || [])
+        .map(week => {
+            const start = new Date(week.FromDate);
+            const end = new Date(week.ToDate);
+            const monthName = start.toLocaleString('default', { month: 'short' });
+            return {
+                start: week.FromDate,
+                end: week.ToDate,
+                value: `${week.FromDate} - ${week.ToDate}`,
+                label: `Week ${week.WeekNo} (${monthName} ${start.getDate()} - ${end.getDate()})`
+            };
+        });
 
-        let current = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0).getDate();
-        let weekNum = 1;
-
-        while (current.getMonth() === month) {
-            const startDate = new Date(year, month, current.getDate());
-
-            // Calculate Saturday of this week
-            let endDay = current.getDate() + (6 - current.getDay());
-            if (endDay > lastDay) {
-                endDay = lastDay;
-            }
-
-            const endDate = new Date(year, month, endDay);
-
-            // Shift range by 1 day (e.g., Sun-Sat to Mon-Sun)
-            const shiftedStart = new Date(startDate);
-            const startWeek = new Date(startDate)
-            const endWeek = new Date(endDate)
-            shiftedStart.setDate(startDate.getDate() + 1);
-            const shiftedEnd = new Date(endDate);
-            shiftedEnd.setDate(endDate.getDate() + 1);
-
-            const startStr = shiftedStart.toISOString().split('T')[0];
-            const endStr = shiftedEnd.toISOString().split('T')[0];
-            const monthName = today.toLocaleString('default', { month: 'short' });
-
-            // Only add if it ends on or after next Monday
-            if (shiftedEnd >= nextMonday) {
-                weeks.push({
-                    start: startStr,
-                    end: endStr,
-                    value: `${startStr} - ${endStr}`,
-                    label: `Week ${weekNum} (${monthName} ${startWeek.getDate()} - ${endWeek.getDate()})`
-                });
-            }
-
-            if (endDay >= lastDay) break;
-
-            // Next Sunday (original logic to advance the loop)
-            current = new Date(year, month, endDay + 1);
-            weekNum++;
-        }
-
-        return weeks;
-    })();
 
     const { data: distributors } = useQuery<Distributor[]>({
         queryKey: ['distributors'],
@@ -99,7 +60,7 @@ const CreateOrder = () => {
         mutationFn: orderApi.initialize,
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['orders'] });
-            navigate(`/order/${data.first_id}`);
+            navigate(`/order/${data.first_id}/edit`);
         },
     });
 
@@ -112,8 +73,8 @@ const CreateOrder = () => {
         createMutation.mutate({
             ...formData,
             periode: finalPeriode,
-            dist_id: parseInt(formData.dist_id),
             dlv_date: formData.periode,
+            dist_id: parseInt(formData.dist_id)
         });
     };
 
@@ -123,7 +84,7 @@ const CreateOrder = () => {
         if (type === '1') { // Fix Order
             newPeriode = getMinMonth();
         } else if (type === '2') { // Additional Order
-            newPeriode = weeksInMonth[0].start;
+            newPeriode = weeksInMonth[0]?.value || new Date().toISOString().split('T')[0];
         } else if (type === '3') { // Urgent Order
             newPeriode = getTomorrow();
         }
@@ -131,7 +92,8 @@ const CreateOrder = () => {
         setFormData({
             ...formData,
             order_type: type,
-            periode: newPeriode
+            periode: newPeriode,
+            dlv_date: newPeriode
         });
     };
 
@@ -204,7 +166,7 @@ const CreateOrder = () => {
                                             required
                                             className="w-full h-10 px-3 rounded border-neutral-300 text-sm focus:ring-[#A51C24] focus:border-[#A51C24] transition-shadow bg-white"
                                             value={formData.periode}
-                                            onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
+                                            onChange={(e) => setFormData({ ...formData, periode: e.target.value, dlv_date: e.target.value })}
                                         >
                                             {weeksInMonth.map(week => (
                                                 <option key={week.value} value={week.value}>{week.label}</option>
@@ -217,13 +179,13 @@ const CreateOrder = () => {
                                             min={formData.order_type === '1' ? getMinMonth() : (formData.order_type === '3' ? getTomorrow() : undefined)}
                                             className="w-full h-10 px-3 rounded border-neutral-300 text-sm focus:ring-[#A51C24] focus:border-[#A51C24] transition-shadow bg-white"
                                             value={formData.periode}
-                                            onChange={(e) => setFormData({ ...formData, periode: e.target.value })}
+                                            onChange={(e) => setFormData({ ...formData, periode: e.target.value, dlv_date: e.target.value })}
                                         />
                                     )}
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-neutral-100">
+                            {/* <div className="pt-4 border-t border-neutral-100">
                                 <h3 className="text-sm font-bold text-green-600 underline italic mb-4">Order Preferences</h3>
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-4">
@@ -255,7 +217,7 @@ const CreateOrder = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
 
                         <div className="pt-6 border-t border-neutral-100 flex justify-end gap-3">

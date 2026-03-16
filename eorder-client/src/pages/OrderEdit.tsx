@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderApi, productsApi } from '../api/api';
 import { Button } from '../components/ui/UI';
-import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Send, RefreshCw, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Product } from '../types';
 
@@ -12,6 +12,7 @@ const OrderEdit = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [quantities, setQuantities] = useState<Record<string, number>>({});
+    const [savedQuantities, setSavedQuantities] = useState<Record<string, number>>({});
 
     // Fetch single order to get PO Number and metadata
     const { data: order, isLoading: isOrderLoading } = useQuery({
@@ -52,6 +53,7 @@ const OrderEdit = () => {
                 qtys[line.sku] = line.order_qty;
             });
             setQuantities(qtys);
+            setSavedQuantities(qtys);
         }
     }, [poLines]);
 
@@ -92,6 +94,7 @@ const OrderEdit = () => {
             return Promise.all(promises);
         },
         onSuccess: () => {
+            setSavedQuantities(quantities);
             queryClient.invalidateQueries({ queryKey: ['po-lines', order?.filename] });
             alert('Draft saved successfully!');
         },
@@ -106,9 +109,12 @@ const OrderEdit = () => {
     });
 
     const handleQtyChange = (sku: string, qty: string) => {
-        const val = parseInt(qty) || 0;
+        const val = parseInt(qty);
         setQuantities(prev => ({ ...prev, [sku]: val }));
     };
+
+    const isDirty = Object.keys(quantities).some(sku => quantities[sku] !== (savedQuantities[sku] || 0)) ||
+        Object.keys(savedQuantities).some(sku => savedQuantities[sku] !== (quantities[sku] || 0));
 
     const totalQty = Object.values(quantities).reduce((a, b) => a + b, 0);
 
@@ -146,14 +152,14 @@ const OrderEdit = () => {
                         <RefreshCw size={14} className="mr-2" />
                         Refresh
                     </Button>
-                    <Button variant="outline" size="sm" className="h-9">
+                    {/* <Button variant="outline" size="sm" className="h-9">
                         <FileDown size={14} className="mr-2" />
                         Download
                     </Button>
                     <Button variant="outline" size="sm" className="h-9">
                         <FileUp size={14} className="mr-2" />
                         Upload
-                    </Button>
+                    </Button> */}
                     <div className="h-6 w-px bg-neutral-200 mx-1" />
                     <Button
                         variant="outline"
@@ -169,7 +175,7 @@ const OrderEdit = () => {
                         size="sm"
                         className="h-9"
                         onClick={handleSubmit}
-                        disabled={order?.status !== 'DRAFT' || submitMutation.isPending}
+                        disabled={order?.status !== 'DRAFT' || submitMutation.isPending || isDirty}
                     >
                         {submitMutation.isPending ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Send size={14} className="mr-2" />}
                         Submit Order
@@ -221,7 +227,7 @@ const OrderEdit = () => {
                                         <input
                                             type="number"
                                             className="w-full h-8 text-center text-xs font-bold border-neutral-200 rounded focus:ring-[#A51C24]"
-                                            value={quantities[product.Material_Code] || 0}
+                                            value={quantities[product.Material_Code]}
                                             onChange={(e) => handleQtyChange(product.Material_Code, e.target.value)}
                                             disabled={order?.status !== 'DRAFT'}
                                         />

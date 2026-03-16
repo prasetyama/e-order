@@ -13,7 +13,7 @@ interface Filters {
     grouped?: boolean;
 }
 
-const DRAFT_TABLE = 'eorder.eorder_draforderdistributor';
+const DRAFT_TABLE = 'eorder_draforderdistributor';
 
 const SELECT_QUERY = `
     SELECT 
@@ -105,7 +105,7 @@ export const orderDetailRepository = {
 
     async findById(id: number): Promise<OrderDetail | null> {
         const [rows] = await pool.query<OrderDetailRow[]>(
-            `SELECT * FROM (${SELECT_QUERY}) as t WHERE id = ?`,
+            `SELECT * FROM (${SELECT_QUERY}) as t JOIN eorder_eorder_distributor d ON t.dist_id = d.distid WHERE t.id = ?`,
             [id]
         );
         return rows[0] || null;
@@ -268,5 +268,38 @@ export const orderDetailRepository = {
         );
 
         return null;
+    },
+
+    async getWeeks(): Promise<any[]> {
+        const [rows] = await pool.query<RowDataPacket[]>(
+            `SELECT WeekNo, FromDate, ToDate, PeriodeLabel, Periode 
+             FROM eorder.KALENDAR 
+             WHERE Periode = DATE_FORMAT(NOW(), '%Y%m')
+               AND FromDate >= DATE_ADD(CURDATE(), INTERVAL 7 - WEEKDAY(CURDATE()) DAY)
+             ORDER BY WeekNo ASC`
+        );
+        return rows;
+    },
+
+    async findInvoicesByFilename(filename: string): Promise<any[]> {
+        const [rows] = await pool.query<RowDataPacket[]>(
+            `SELECT 
+                dt.distid as dist_id,
+                dt.ponumber as po_number,
+                dt.podate as po_date,
+                dt.dlvdate as dlv_date,
+                dt.principal,
+                dt.sku,
+                p.Material_Description as product_name,
+                dt.orderqty as order_qty,
+                dt.uom,
+                dt.stockonhand as stock_on_hand,
+                dt.filename
+             FROM eorder_eorderdatadtl dt
+             JOIN Eorder_ProdMaster p ON dt.sku = p.Material_Code
+             WHERE dt.filename = ?`,
+            [filename]
+        );
+        return rows;
     },
 };

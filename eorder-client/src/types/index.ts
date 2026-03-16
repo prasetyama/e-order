@@ -30,3 +30,11 @@ export interface Product {
     BASEUOM: string;
     price: number;
 }
+
+export interface CalendarWeek {
+    WeekNo: number;
+    FromDate: string;
+    ToDate: string;
+    PeriodeLabel: string;
+    Periode: number;
+}
