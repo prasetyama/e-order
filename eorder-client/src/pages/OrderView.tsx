@@ -17,11 +17,18 @@ const OrderView = () => {
         enabled: !!id,
     });
 
-    // Fetch all lines for this Filename
+    // Fetch all lines for this Filename (Drafts)
     const { data: poLines, isLoading: isLinesLoading } = useQuery<OrderDetail[]>({
         queryKey: ['po-lines', order?.filename],
         queryFn: () => orderApi.getAll({ filename: order?.filename }),
-        enabled: !!order?.filename,
+        enabled: !!order?.filename && order.status !== 'SUBMITTED',
+    });
+
+    // Fetch invoices if submitted
+    const { data: invoices, isLoading: isInvoicesLoading } = useQuery<any[]>({
+        queryKey: ['invoices', order?.filename],
+        queryFn: () => orderApi.getInvoices(order?.filename!),
+        enabled: !!order?.filename && order.status === 'SUBMITTED',
     });
 
     const order_type_map: Record<number, string> = {
@@ -35,11 +42,26 @@ const OrderView = () => {
         'A00NL1': 'PT. NIRWANA LESTARI',
     };
 
-    // Filter lines with qty > 0
-    const activeLines = poLines?.filter(line => line.order_qty > 0) || [];
-    const totalQty = activeLines.reduce((sum, line) => sum + (line.order_qty || 0), 0);
+    // Use invoices if submitted, otherwise use poLines
+    const displayLines = order?.status === 'SUBMITTED' ? invoices || [] : poLines || [];
 
-    if (isOrderLoading || isLinesLoading) {
+    // Filter lines with qty > 0
+    const activeLinesRaw = displayLines.filter(line => (line.order_qty || 0) > 0);
+
+    // Group by PO Number
+    const groupedByPO = activeLinesRaw.reduce((acc: Record<string, any[]>, line) => {
+        const poKey = line.po_number || 'DRAFT';
+        if (!acc[poKey]) {
+            acc[poKey] = [];
+        }
+        acc[poKey].push(line);
+        return acc;
+    }, {});
+
+    const totalQty = activeLinesRaw.reduce((sum, line) => sum + (line.order_qty || 0), 0);
+    const poNumbers = Object.keys(groupedByPO);
+
+    if (isOrderLoading || isLinesLoading || isInvoicesLoading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#A51C24]"></div>
@@ -69,25 +91,10 @@ const OrderView = () => {
                         {order.status}
                     </span>
                 </div>
-
-                {/* <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm" className="h-9">
-                        <Printer size={14} className="mr-2" />
-                        Print
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-9">
-                        <Download size={14} className="mr-2" />
-                        Export PDF
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-9">
-                        <Share2 size={14} className="mr-2" />
-                        Share
-                    </Button>
-                </div> */}
             </div>
 
             {/* Info Bar */}
-            <div className="bg-neutral-800 text-white px-6 py-4 grid grid-cols-4 gap-4">
+            <div className="bg-neutral-800 text-white px-6 py-4 grid grid-cols-5 gap-4">
                 <div>
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Order Id</span>
                     <span className="text-sm font-medium">{order.filename}</span>
@@ -104,55 +111,78 @@ const OrderView = () => {
                     <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Period</span>
                     <span className="text-sm font-medium">{order.periode}</span>
                 </div>
+                <div>
+                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest">Order by</span>
+                    <span className="text-sm font-medium">{order.DistName}</span>
+                </div>
             </div>
 
-            {/* Product Table */}
-            <div className="flex-1 overflow-auto p-6">
-                <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
-                    <table className="min-w-full divide-y divide-neutral-200">
-                        <thead className="bg-[#A51C24]">
-                            <tr>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest w-12 text-center">No.</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest w-32">SKU</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">Product Name</th>
-                                <th className="px-4 py-3 text-center text-[10px] font-bold text-white uppercase tracking-widest w-32">Order Qty</th>
-                                <th className="px-4 py-3 text-center text-[10px] font-bold text-white uppercase tracking-widest w-24">UOM</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-neutral-100">
-                            {activeLines.map((line, index) => (
-                                <tr key={line.id} className="hover:bg-neutral-50/50">
-                                    <td className="px-4 py-3 whitespace-nowrap text-xs text-neutral-400 font-medium text-center">{index + 1}</td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-[#A51C24]">{line.sku}</td>
-                                    <td className="px-4 py-3 text-xs text-neutral-700 font-medium">
-                                        {/* Since OrderDetail doesn't always have product_name in the schema, we might need to handle it */}
-                                        {(line as any).product_name}
-                                    </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-bold text-neutral-800">
-                                        {line.order_qty}
-                                    </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-xs text-center text-neutral-500 font-bold">{line.uom}</td>
-                                </tr>
-                            ))}
-                            {activeLines.length === 0 && (
-                                <tr>
-                                    <td colSpan={5} className="px-4 py-12 text-center text-neutral-400 italic text-sm">
-                                        No items with quantity greater than 0 found in this order.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                        <tfoot className="bg-neutral-50 font-bold">
-                            <tr>
-                                <td colSpan={3} className="px-4 py-4 text-right text-[10px] uppercase tracking-widest text-neutral-500">Total Order Quantity</td>
-                                <td className="px-4 py-4 text-center text-sm text-[#A51C24]">
-                                    {totalQty}
-                                </td>
-                                <td colSpan={1}></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+            {/* Invoices List */}
+            <div className="flex-1 overflow-auto p-6 space-y-8">
+                {poNumbers.map((poNum) => (
+                    <div key={poNum} className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">PO Number:</span>
+                            <span className="px-3 py-1 bg-[#A51C24] text-white text-xs font-bold rounded shadow-sm">
+                                {poNum}
+                            </span>
+                        </div>
+
+                        <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
+                            <table className="min-w-full divide-y divide-neutral-200">
+                                <thead className="bg-[#A51C24]">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest w-12 text-center">No.</th>
+                                        <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest w-32">SKU</th>
+                                        <th className="px-4 py-3 text-left text-[10px] font-bold text-white uppercase tracking-widest">Product Name</th>
+                                        <th className="px-4 py-3 text-center text-[10px] font-bold text-white uppercase tracking-widest w-32">Order Qty</th>
+                                        <th className="px-4 py-3 text-center text-[10px] font-bold text-white uppercase tracking-widest w-24">UOM</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-neutral-100">
+                                    {groupedByPO[poNum].map((line, index) => (
+                                        <tr key={`${poNum}-${line.sku}-${index}`} className="hover:bg-neutral-50/50">
+                                            <td className="px-4 py-3 whitespace-nowrap text-xs text-neutral-400 font-medium text-center">{index + 1}</td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-[#A51C24]">
+                                                {line.sku}
+                                            </td>
+                                            <td className="px-4 py-3 text-xs text-neutral-700 font-medium">
+                                                {line.product_name || (line as any).Material_Description || '-'}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-bold text-neutral-800">
+                                                {line.order_qty}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap text-xs text-center text-neutral-500 font-bold">{line.uom}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                                <tfoot className="bg-neutral-50 font-bold">
+                                    <tr>
+                                        <td colSpan={3} className="px-4 py-4 text-right text-[10px] uppercase tracking-widest text-neutral-500">PO Total Quantity</td>
+                                        <td className="px-4 py-4 text-center text-sm text-[#A51C24]">
+                                            {groupedByPO[poNum].reduce((sum, l) => sum + (l.order_qty || 0), 0)}
+                                        </td>
+                                        <td colSpan={1}></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                ))}
+
+                {poNumbers.length === 0 && (
+                    <div className="bg-white border border-neutral-200 rounded-lg p-12 text-center text-neutral-400 italic text-sm shadow-sm">
+                        No items with quantity greater than 0 found in this order.
+                    </div>
+                )}
+
+                {/* Grand Total */}
+                {poNumbers.length > 0 && (
+                    <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                        <span className="text-xs uppercase font-bold tracking-[0.2em] text-white">Total Order Quantity</span>
+                        <span className="text-2xl font-black text-white">{totalQty}</span>
+                    </div>
+                )}
             </div>
         </div>
     );

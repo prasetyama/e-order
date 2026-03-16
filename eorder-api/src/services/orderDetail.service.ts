@@ -87,4 +87,8 @@ export const orderDetailService = {
     async getWeeks() {
         return orderDetailRepository.getWeeks();
     },
+
+    async getInvoicesByFilename(filename: string) {
+        return orderDetailRepository.findInvoicesByFilename(filename);
+    },
 };

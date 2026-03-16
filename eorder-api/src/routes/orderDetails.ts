@@ -12,5 +12,7 @@ router.post('/', orderDetailController.create);
 router.patch('/:id', orderDetailController.update);
 router.patch('/:id/submit', orderDetailController.submit);
 router.patch('/:id/cancel', orderDetailController.cancel);
+router.get('/invoices/:filename', orderDetailController.getInvoices);
+
 
 export default router;
