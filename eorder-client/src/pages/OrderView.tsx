@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderApi } from '../api/api';
 import { Button } from '../components/ui/UI';
-import { ArrowLeft, Printer, Download, Share2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { OrderDetail } from '../types';
 

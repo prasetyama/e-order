@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderApi, productsApi } from '../api/api';
 import { Button } from '../components/ui/UI';
-import { ArrowLeft, Save, Send, RefreshCw, FileDown, FileUp, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Send, RefreshCw, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Product } from '../types';
 
