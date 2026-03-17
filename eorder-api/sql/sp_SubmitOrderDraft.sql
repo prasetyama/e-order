@@ -58,16 +58,8 @@ BEGIN
             DistId, ponumber, podate, dlvdate, Principal, 
             Sku, 
             CASE 
-                WHEN OrderQty > 100 THEN
-                    FLOOR(OrderQty / NumWeeks) + 
-                    IF(
-                        CASE 
-                            WHEN WeekRank % 2 = 1 THEN (WeekRank + 1) / 2 
-                            ELSE CEIL(NumWeeks / 2) + (WeekRank / 2) 
-                        END <= (OrderQty % NumWeeks), 
-                        1, 0
-                    )
-                ELSE OrderQty
+                WHEN WeekRank < ActualSplits THEN 250
+                ELSE OrderQty - (ActualSplits - 1) * 250
             END as split_qty,
             UOM, StockOnHand, Filename, 
             OrderType, PeriodeOrder, CreateBy, CreateDate,
@@ -79,13 +71,13 @@ BEGIN
                 k.ToDate as podate, k.ToDate as dlvdate, d.Principal, 
                 d.Sku, d.OrderQty, d.UOM, d.StockOnHand, p_filename as Filename, 
                 d.OrderType, d.PeriodeOrder, d.CreateBy, d.CreateDate,
-                ROW_NUMBER() OVER(PARTITION BY d.Id ORDER BY k.WeekNo) as WeekRank,
-                COUNT(*) OVER(PARTITION BY d.Id) as NumWeeks
+                ROW_NUMBER() OVER(PARTITION BY d.Id ORDER BY (k.WeekNo % 2 = 1) DESC, k.WeekNo) as WeekRank,
+                GREATEST(1, LEAST(COUNT(*) OVER(PARTITION BY d.Id), CEIL(d.OrderQty / 250))) as ActualSplits
             FROM eorder.eorder_draforderdistributor d
             JOIN eorder.KALENDAR k ON REPLACE(d.RddDate, '-', '') = k.Periode
             WHERE d.FileName = p_filename AND d.OrderQty > 0
         ) t
-        WHERE (OrderQty > 100) OR (OrderQty <= 100 AND WeekRank = 1);
+        WHERE WeekRank <= ActualSplits;
 
     -- TYPE 2: Additional Order - Range to WeekNo
     ELSEIF v_order_type = '2' THEN
