@@ -121,11 +121,21 @@ const OrderView = () => {
             <div className="flex-1 overflow-auto p-6 space-y-8">
                 {poNumbers.map((poNum) => (
                     <div key={poNum} className="space-y-3">
-                        <div className="flex items-center space-x-3">
-                            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">PO Number:</span>
-                            <span className="px-3 py-1 bg-[#A51C24] text-white text-xs font-bold rounded shadow-sm">
-                                {poNum}
-                            </span>
+                        <div className='flex flex-row gap-4'>
+                            <div className="flex items-center space-x-3">
+                                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">PO Number:</span>
+                                <span className="px-3 py-1 bg-[#A51C24] text-white text-xs font-bold rounded shadow-sm">
+                                    {poNum}
+                                </span>
+                            </div>
+                            {poNum !== 'DRAFT' && (
+                                <div className='flex items-center space-x-3'>
+                                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Delivery Date:</span>
+                                    <span className="px-3 py-1 bg-[#A51C24] text-white text-xs font-bold rounded shadow-sm">
+                                        {groupedByPO[poNum][0].dlv_date}
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
