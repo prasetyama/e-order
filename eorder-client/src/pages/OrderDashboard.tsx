@@ -16,7 +16,7 @@ const OrderDashboard = () => {
         queryFn: () => orderApi.getAll({
             grouped: true,
             status: status === 'All Status' ? undefined : status.toUpperCase(),
-            periode: periode || undefined,
+            periode: periode ? periode.replace(/[-_]/g, '') : undefined,
             filename: search || undefined,
         } as any),
     });
