@@ -146,11 +146,13 @@ const OrderDashboard = () => {
                                                     <Eye size={16} className="mr-2" />
                                                 </Button>
                                             </Link>
-                                            <Link to={`/order/${order.id}/edit`}>
-                                                <Button variant="ghost" size="sm" className="hover:bg-[#A51C24]/10 hover:text-[#A51C24]">
-                                                    <Edit size={16} className="mr-2" />
-                                                </Button>
-                                            </Link>
+                                            {order.status === 'DRAFT' && (
+                                                <Link to={`/order/${order.id}/edit`}>
+                                                    <Button variant="ghost" size="sm" className="hover:bg-[#A51C24]/10 hover:text-[#A51C24]">
+                                                        <Edit size={16} className="mr-2" />
+                                                    </Button>
+                                                </Link>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

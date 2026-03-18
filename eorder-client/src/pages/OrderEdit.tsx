@@ -48,6 +48,10 @@ const OrderEdit = () => {
     // Sync state when data changes
     useEffect(() => {
         if (poLines) {
+            if (order?.status !== 'DRAFT') {
+                navigate(`/order/${id}`);
+                return;
+            }
             const qtys: Record<string, number> = {};
             poLines.forEach((line: any) => {
                 qtys[line.sku] = line.order_qty;

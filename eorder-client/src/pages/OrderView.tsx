@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderApi } from '../api/api';
@@ -9,6 +10,7 @@ import type { OrderDetail } from '../types';
 const OrderView = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState<string>('');
 
     // Fetch single order to get PO Number and metadata
     const { data: order, isLoading: isOrderLoading } = useQuery({
@@ -60,6 +62,13 @@ const OrderView = () => {
 
     const totalQty = activeLinesRaw.reduce((sum, line) => sum + (line.order_qty || 0), 0);
     const poNumbers = Object.keys(groupedByPO);
+
+    // Sync active tab
+    useEffect(() => {
+        if (poNumbers.length > 0 && (!activeTab || !poNumbers.includes(activeTab))) {
+            setActiveTab(poNumbers[0]);
+        }
+    }, [poNumbers]);
 
     if (isOrderLoading || isLinesLoading || isInvoicesLoading) {
         return (
@@ -117,27 +126,55 @@ const OrderView = () => {
                 </div>
             </div>
 
-            {/* Invoices List */}
-            <div className="flex-1 overflow-auto p-6 space-y-8">
-                {poNumbers.map((poNum) => (
-                    <div key={poNum} className="space-y-3">
-                        <div className='flex flex-row gap-4'>
-                            <div className="flex items-center space-x-3">
-                                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">PO Number:</span>
-                                <span className="px-3 py-1 bg-[#A51C24] text-white text-xs font-bold rounded shadow-sm">
-                                    {poNum}
-                                </span>
-                            </div>
-                            {poNum !== 'DRAFT' && (
-                                <div className='flex items-center space-x-3'>
-                                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Delivery Date:</span>
-                                    <span className="px-3 py-1 bg-[#A51C24] text-white text-xs font-bold rounded shadow-sm">
-                                        {groupedByPO[poNum][0].dlv_date}
+            {/* Tabs Navigation */}
+            {poNumbers.length > 0 && (
+                <div className="bg-white border-b border-neutral-200 flex items-center overflow-x-auto scrollbar-hide">
+                    {poNumbers.map((poNum) => (
+                        <button
+                            key={poNum}
+                            onClick={() => setActiveTab(poNum)}
+                            className={clsx(
+                                "px-6 py-3 text-[10px] font-bold uppercase tracking-[0.1em] transition-all duration-200 border-b-2 whitespace-nowrap",
+                                activeTab === poNum
+                                    ? "border-[#A51C24] text-[#A51C24] bg-[#A51C24]/5"
+                                    : "border-transparent text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50"
+                            )}
+                        >
+                            {poNum}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Content Area */}
+            <div className="flex-1 overflow-auto p-6 space-y-6">
+                {activeTab && groupedByPO[activeTab] ? (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {/* PO Summary Card */}
+                        <div className="bg-white border border-neutral-200 rounded-lg p-4 shadow-sm flex items-center justify-between">
+                            <div className="flex items-center space-x-10">
+                                <div>
+                                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest mb-1.5">Selected PO Number</span>
+                                    <span className="text-sm font-bold text-[#A51C24] bg-[#A51C24]/5 px-2 py-1 rounded border border-[#A51C24]/10">
+                                        {activeTab}
                                     </span>
                                 </div>
-                            )}
+                                {activeTab !== 'DRAFT' && groupedByPO[activeTab][0].dlv_date && (
+                                    <div>
+                                        <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest mb-1.5">Delivery Date</span>
+                                        <span className="text-sm font-bold text-neutral-800">
+                                            {groupedByPO[activeTab][0].dlv_date}
+                                        </span>
+                                    </div>
+                                )}
+                                <div>
+                                    <span className="text-[9px] uppercase font-bold text-neutral-400 block tracking-widest mb-1.5">Total Items</span>
+                                    <span className="text-sm font-bold text-neutral-800">{groupedByPO[activeTab].length}</span>
+                                </div>
+                            </div>
                         </div>
 
+                        {/* Table */}
                         <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
                             <table className="min-w-full divide-y divide-neutral-200">
                                 <thead className="bg-[#A51C24]">
@@ -150,8 +187,8 @@ const OrderView = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-neutral-100">
-                                    {groupedByPO[poNum].map((line, index) => (
-                                        <tr key={`${poNum}-${line.sku}-${index}`} className="hover:bg-neutral-50/50">
+                                    {groupedByPO[activeTab].map((line, index) => (
+                                        <tr key={`${activeTab}-${line.sku}-${index}`} className="hover:bg-neutral-50/50 transition-colors">
                                             <td className="px-4 py-3 whitespace-nowrap text-xs text-neutral-400 font-medium text-center">{index + 1}</td>
                                             <td className="px-4 py-3 whitespace-nowrap text-xs font-bold text-[#A51C24]">
                                                 {line.sku}
@@ -168,9 +205,9 @@ const OrderView = () => {
                                 </tbody>
                                 <tfoot className="bg-neutral-50 font-bold">
                                     <tr>
-                                        <td colSpan={3} className="px-4 py-4 text-right text-[10px] uppercase tracking-widest text-neutral-500">PO Total Quantity</td>
+                                        <td colSpan={3} className="px-4 py-4 text-right text-[10px] uppercase tracking-widest text-neutral-500">PO Subtotal</td>
                                         <td className="px-4 py-4 text-center text-sm text-[#A51C24]">
-                                            {new Intl.NumberFormat('id-ID').format(groupedByPO[poNum].reduce((sum, l) => sum + (l.order_qty || 0), 0))}
+                                            {new Intl.NumberFormat('id-ID').format(groupedByPO[activeTab].reduce((sum, l) => sum + (l.order_qty || 0), 0))}
                                         </td>
                                         <td colSpan={1}></td>
                                     </tr>
@@ -178,19 +215,24 @@ const OrderView = () => {
                             </table>
                         </div>
                     </div>
-                ))}
-
-                {poNumbers.length === 0 && (
+                ) : (
                     <div className="bg-white border border-neutral-200 rounded-lg p-12 text-center text-neutral-400 italic text-sm shadow-sm">
-                        No items with quantity greater than 0 found in this order.
+                        No items found.
                     </div>
                 )}
 
-                {/* Grand Total */}
+                {/* Grand Total Bar */}
                 {poNumbers.length > 0 && (
-                    <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-md flex items-center justify-between">
-                        <span className="text-xs uppercase font-bold tracking-[0.2em] text-white">Total Order Quantity</span>
-                        <span className="text-2xl font-black text-white">{totalQty}</span>
+                    <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-md flex items-center justify-between mt-auto">
+                        <div className="flex items-center space-x-4">
+                            <div className="bg-white/10 p-2 rounded">
+                                <span className="text-[10px] uppercase font-black tracking-widest">Total Order</span>
+                            </div>
+                            <span className="text-xs text-neutral-400 font-medium uppercase tracking-widest">Aggregate across all POs</span>
+                        </div>
+                        <span className="text-3xl font-black text-white decoration-[#A51C24] decoration-4 underline-offset-8">
+                            {new Intl.NumberFormat('id-ID').format(totalQty)}
+                        </span>
                     </div>
                 )}
             </div>
