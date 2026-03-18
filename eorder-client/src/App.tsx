@@ -5,6 +5,7 @@ import OrderDashboard from './pages/OrderDashboard';
 import CreateOrder from './pages/CreateOrder';
 import OrderEdit from './pages/OrderEdit';
 import OrderView from './pages/OrderView';
+import Settings from './pages/Settings';
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ function App() {
             <Route path="create" element={<CreateOrder />} />
             <Route path="order/:id" element={<OrderView />} />
             <Route path="order/:id/edit" element={<OrderEdit />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </Router>

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, LogOut } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, LogOut, Settings } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +26,7 @@ const Layout = () => {
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Create Order', path: '/create', icon: PlusCircle },
+        { name: 'Settings', path: '/settings', icon: Settings },
     ];
 
     return (
