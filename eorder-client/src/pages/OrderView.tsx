@@ -160,7 +160,7 @@ const OrderView = () => {
                                                 {line.product_name || (line as any).Material_Description || '-'}
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-bold text-neutral-800">
-                                                {line.order_qty}
+                                                {new Intl.NumberFormat('id-ID').format(line.order_qty)}
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap text-xs text-center text-neutral-500 font-bold">{line.uom}</td>
                                         </tr>
@@ -170,7 +170,7 @@ const OrderView = () => {
                                     <tr>
                                         <td colSpan={3} className="px-4 py-4 text-right text-[10px] uppercase tracking-widest text-neutral-500">PO Total Quantity</td>
                                         <td className="px-4 py-4 text-center text-sm text-[#A51C24]">
-                                            {groupedByPO[poNum].reduce((sum, l) => sum + (l.order_qty || 0), 0)}
+                                            {new Intl.NumberFormat('id-ID').format(groupedByPO[poNum].reduce((sum, l) => sum + (l.order_qty || 0), 0))}
                                         </td>
                                         <td colSpan={1}></td>
                                     </tr>
