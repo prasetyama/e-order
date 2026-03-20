@@ -62,3 +62,14 @@ export const orderApi = {
         return response.data.data;
     },
 };
+
+export const configApi = {
+    getAll: async () => {
+        const response = await api.get('/config');
+        return response.data.data;
+    },
+    update: async (key: string, value: string) => {
+        const response = await api.put(`/config/${key}`, { config_value: value });
+        return response.data;
+    },
+};

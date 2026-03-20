@@ -10,6 +10,12 @@ BEGIN
     DECLARE v_principal VARCHAR(10);
     DECLARE v_month_str VARCHAR(7);
     DECLARE v_urgent_running_no INT DEFAULT 0;
+    DECLARE v_split_max_qty INT DEFAULT 250;
+    DECLARE v_split_mode VARCHAR(50) DEFAULT 'ALL';
+
+    -- Get Configs
+    SELECT config_value INTO v_split_max_qty FROM eorder.eorder_config WHERE config_key = 'order_split_max_qty';
+    SELECT config_value INTO v_split_mode FROM eorder.eorder_config WHERE config_key = 'order_split_mode';
 
     -- 1. Get metadata from draft
     SELECT Principal, OrderType, PeriodeOrder, DistId
@@ -58,24 +64,39 @@ BEGIN
             DistId, ponumber, podate, dlvdate, Principal, 
             Sku, 
             CASE 
-                WHEN WeekRank < ActualSplits THEN 250
-                ELSE OrderQty - (ActualSplits - 1) * 250
+                WHEN WeekRank < ActualSplits THEN v_split_max_qty
+                ELSE OrderQty - (ActualSplits - 1) * v_split_max_qty
             END as split_qty,
             UOM, StockOnHand, Filename, 
             OrderType, PeriodeOrder, CreateBy, CreateDate,
             0
         FROM (
             SELECT 
-                d.DistId,
-                CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/F', LPAD(k.WeekNo, 3, '00'), '/', v_periode_order) as ponumber,
-                k.ToDate as podate, k.ToDate as dlvdate, d.Principal, 
-                d.Sku, d.OrderQty, d.UOM, d.StockOnHand, p_filename as Filename, 
-                d.OrderType, d.PeriodeOrder, d.CreateBy, d.CreateDate,
-                ROW_NUMBER() OVER(PARTITION BY d.Id ORDER BY (k.WeekNo % 2 = 1) DESC, k.WeekNo) as WeekRank,
-                GREATEST(1, LEAST(COUNT(*) OVER(PARTITION BY d.Id), CEIL(d.OrderQty / 250))) as ActualSplits
-            FROM eorder.eorder_draforderdistributor d
-            JOIN eorder.KALENDAR k ON REPLACE(d.RddDate, '-', '') = k.Periode
-            WHERE d.FileName = p_filename AND d.OrderQty > 0
+                t_inner.DistId,
+                CONCAT(v_principal_code, '/', IFNULL(v_dist_short, ''), '/F', LPAD(t_inner.WeekNo, 3, '00'), '/', v_periode_order) as ponumber,
+                t_inner.ToDate as podate, t_inner.ToDate as dlvdate, t_inner.Principal, 
+                t_inner.Sku, t_inner.OrderQty, t_inner.UOM, t_inner.StockOnHand, p_filename as Filename, 
+                t_inner.OrderType, t_inner.PeriodeOrder, t_inner.CreateBy, t_inner.CreateDate,
+                ROW_NUMBER() OVER(
+                    PARTITION BY t_inner.Id 
+                    ORDER BY 
+                        (MonthWeekRank % 2 = 1) DESC, 
+                        MonthWeekRank
+                ) as WeekRank,
+                GREATEST(1, LEAST(
+                    COUNT(*) OVER(PARTITION BY t_inner.Id), 
+                    CEIL(t_inner.OrderQty / v_split_max_qty)
+                )) as ActualSplits
+            FROM (
+                SELECT 
+                    d.*, 
+                    k.ToDate, k.WeekNo,
+                    ROW_NUMBER() OVER(PARTITION BY d.Id ORDER BY k.ToDate) as MonthWeekRank
+                FROM eorder.eorder_draforderdistributor d
+                JOIN eorder.KALENDAR k ON REPLACE(d.RddDate, '-', '') = k.Periode
+                WHERE d.FileName = p_filename AND d.OrderQty > 0
+            ) t_inner
+            WHERE (v_split_mode = 'ALL' OR (v_split_mode = 'ODD_ONLY' AND MonthWeekRank % 2 = 1))
         ) t
         WHERE WeekRank <= ActualSplits;
 

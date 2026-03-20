@@ -3,6 +3,7 @@ import cors from 'cors';
 import orderDetailRoutes from './routes/orderDetails';
 import distributorRoutes from './routes/distributors';
 import productRoutes from './routes/products';
+import configRoutes from './routes/config';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/api/distributors', distributorRoutes);
 app.use('/api/order-details', orderDetailRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/config', configRoutes);
 
 // ─── Health check ────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
