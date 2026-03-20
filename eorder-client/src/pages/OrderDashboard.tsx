@@ -124,9 +124,9 @@ const OrderDashboard = () => {
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600 font-medium">{principal_map[order.principle] || 'N/A'}</td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order_type_map[parseInt(order.order_type)] || 'N/A'}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-center text-neutral-600">{order.total_sku || 0}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-center text-[#A51C24]">{new Intl.NumberFormat('id-ID').format(order.total_qty) || 0}</td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600">{order.periode}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-right text-neutral-600">{order.total_sku || 0}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-right text-[#A51C24]">{new Intl.NumberFormat('id-ID').format(order.total_qty) || 0}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-neutral-600 text-right">{order.periode}</td>
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <span className={clsx(
                                                 "px-2 inline-flex text-[10px] leading-5 font-bold rounded-full uppercase tracking-wider",

@@ -177,6 +177,7 @@ const CreateOrder = () => {
                                             required
                                             type={formData.order_type === '1' ? 'month' : 'date'}
                                             min={formData.order_type === '1' ? getMinMonth() : (formData.order_type === '3' ? getTomorrow() : undefined)}
+                                            max={formData.order_type === '1' ? getMinMonth() : undefined}
                                             className="w-full h-10 px-3 rounded border-neutral-300 text-sm focus:ring-[#A51C24] focus:border-[#A51C24] transition-shadow bg-white"
                                             value={formData.periode}
                                             onChange={(e) => setFormData({ ...formData, periode: e.target.value, dlv_date: e.target.value })}
