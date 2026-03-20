@@ -64,8 +64,17 @@ BEGIN
             DistId, ponumber, podate, dlvdate, Principal, 
             Sku, 
             CASE 
-                WHEN WeekRank < ActualSplits THEN v_split_max_qty
-                ELSE OrderQty - (ActualSplits - 1) * v_split_max_qty
+                WHEN v_split_mode = 'ALL' THEN
+                    CASE 
+                        WHEN WeekRank < ActualSplits THEN v_split_max_qty
+                        ELSE OrderQty - (ActualSplits - 1) * v_split_max_qty
+                    END
+                ELSE
+                    -- ODD_ONLY: Split exactly into ActualSplits (1 or 2 weeks)
+                    CASE
+                        WHEN WeekRank < ActualSplits THEN CEIL(OrderQty / ActualSplits)
+                        ELSE OrderQty - (ActualSplits - 1) * CEIL(OrderQty / ActualSplits)
+                    END
             END as split_qty,
             UOM, StockOnHand, Filename, 
             OrderType, PeriodeOrder, CreateBy, CreateDate,
@@ -83,10 +92,16 @@ BEGIN
                         (MonthWeekRank % 2 = 1) DESC, 
                         MonthWeekRank
                 ) as WeekRank,
-                GREATEST(1, LEAST(
-                    COUNT(*) OVER(PARTITION BY t_inner.Id), 
-                    CEIL(t_inner.OrderQty / v_split_max_qty)
-                )) as ActualSplits
+                CASE 
+                    WHEN v_split_mode = 'ALL' THEN
+                        GREATEST(1, LEAST(
+                            COUNT(*) OVER(PARTITION BY t_inner.Id), 
+                            CEIL(t_inner.OrderQty / v_split_max_qty)
+                        ))
+                    ELSE
+                        -- ODD_ONLY: Exactly the number of filtered weeks
+                        COUNT(*) OVER(PARTITION BY t_inner.Id)
+                END as ActualSplits
             FROM (
                 SELECT 
                     d.*, 
@@ -96,7 +111,7 @@ BEGIN
                 JOIN eorder.KALENDAR k ON REPLACE(d.RddDate, '-', '') = k.Periode
                 WHERE d.FileName = p_filename AND d.OrderQty > 0
             ) t_inner
-            WHERE (v_split_mode = 'ALL' OR (v_split_mode = 'ODD_ONLY' AND MonthWeekRank % 2 = 1))
+            WHERE (v_split_mode = 'ALL' OR (v_split_mode = 'ODD_ONLY' AND MonthWeekRank IN (1, 3)))
         ) t
         WHERE WeekRank <= ActualSplits;
 

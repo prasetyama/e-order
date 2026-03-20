@@ -82,19 +82,6 @@ const Settings = () => {
                 <Card title="Order Splitting" className="h-full">
                     <div className="space-y-6">
                         <div className="space-y-4">
-                            <div>
-                                <Input
-                                    label="Maximum Quantity Per Shipment"
-                                    type="number"
-                                    value={localMaxQty}
-                                    onChange={(e) => setLocalMaxQty(e.target.value)}
-                                    placeholder="e.g. 250"
-                                />
-                                <p className="mt-1.5 text-[10px] text-neutral-400 font-bold uppercase tracking-widest pl-1">
-                                    Current value: {maxQtyConfig?.config_value}
-                                </p>
-                            </div>
-
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-neutral-600 uppercase tracking-wider">
                                     Distribution Mode
@@ -113,6 +100,20 @@ const Settings = () => {
                                         : 'Only fills weeks 1 and 3'}
                                 </p>
                             </div>
+                            {localSplitMode === 'ALL' && (
+                                <div>
+                                    <Input
+                                        label="Maximum Quantity Per Shipment"
+                                        type="number"
+                                        value={localMaxQty}
+                                        onChange={(e) => setLocalMaxQty(e.target.value)}
+                                        placeholder="e.g. 250"
+                                    />
+                                    <p className="mt-1.5 text-[10px] text-neutral-400 font-bold uppercase tracking-widest pl-1">
+                                        Current value: {maxQtyConfig?.config_value}
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="pt-4 border-t border-neutral-100 flex justify-end">
                                 <Button
@@ -135,7 +136,7 @@ const Settings = () => {
                     </div>
                 </Card>
 
-                <Card title="Information" className="h-full bg-neutral-50/50">
+                {/* <Card title="Information" className="h-full bg-neutral-50/50">
                     <div className="space-y-4">
                         <div className="text-sm text-neutral-600 space-y-4">
                             <div>
@@ -154,7 +155,7 @@ const Settings = () => {
                                     <li className="flex items-start">
                                         <div className="w-1.5 h-1.5 rounded-full bg-[#A51C24] mt-1.5 mr-2 flex-shrink-0" />
                                         <div className="text-xs leading-relaxed">
-                                            <strong>ODD_ONLY:</strong> The system will restrict shipments to weeks 1 and 3 only. If the total quantity exceeds (2 * Max Qty), the remaining will still be placed in week 3.
+                                            <strong>ODD_ONLY:</strong> The system will restrict shipments to weeks 1 and 3 only, splitting the total quantity into 2 shipments across those weeks.
                                         </div>
                                     </li>
                                 </ul>
@@ -167,7 +168,7 @@ const Settings = () => {
                             </p>
                         </div>
                     </div>
-                </Card>
+                </Card> */}
             </div>
         </div>
     );
